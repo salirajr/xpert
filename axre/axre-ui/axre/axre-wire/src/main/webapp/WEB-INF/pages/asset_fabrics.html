@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/decorator">
+<head layout:fragment="def-head">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Airport | Xpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/css/asset_fabrics.css"
+	th:href="@{/ui/css/asset_fabrics.css}" rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<div layout:fragment="pre-js"></div>
+	<div layout:fragment="content">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content">
+
+						<strong>Asset Fabricating</strong> is simple asset file based
+						management, define and configure CDI context definition. Uses as a
+						online editor to obtain preference of configuration and asset(.xml
+						and .drl).
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-3">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Configuration Locations</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a> <a class="close-link"> <i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content scroolable">
+						<div class="pull-right">
+							<div class="btn-group btn-group-sm m-t-sm white-bg">
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Add Folder" id="plus">
+									<i class="fa fa-plus"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Upload" id="upload">
+									<i class="fa fa-upload"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Refesh" id="refesh">
+									<i class="fa fa-refresh"></i>
+								</button>
+							</div>
+						</div>
+						<div class="invisible">
+							<span id="initOFBase" th:text="${base}"></span> <span
+								id="initOFFile" th:text="${file}"></span> <span
+								id="initOFSource" th:text="${source}"></span>
+						</div>
+						<div class="clearfix"></div>
+						<hr class="hr-line-dashed"></hr>
+						<div id="jstree1"></div>
+
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-9">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						Opened File : <strong><span id="file-lable"
+							class="co-primary"></span></strong>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a> <a class="close-link"> <i class="fa fa-times"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<div class="pull-right">
+							<div class="btn-group btn-group-sm m-t-sm white-bg">
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Save" id="locks">
+									<i id="lock-state" class="fa fa-unlock"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Save" id="save">
+									<i class="fa fa-save"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Rename" id="rename">
+									<i class="fa fa-wrench"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Download" id="download">
+									<i class="fa fa-download"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Link" id="link">
+									<i class="fa fa-link"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Cancel" id="cancel">
+									<i class="fa fa-times"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Delete" id="delete">
+									<i class="fa fa-trash"></i>
+								</button>
+							</div>
+						</div>
+						<div class="clearfix"></div>
+						<pre id="main_editor"></pre>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="add-js">
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+		<script src="../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../ui/js/asset_fabrics.js"
+			th:src="@{/ui/js/asset_fabrics.js}"></script>
+	</div>
+</body>
+
+</html>

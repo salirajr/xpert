@@ -1,0 +1,43 @@
+//created on: Jan 28, 2015
+package assets.axre.chores
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+rule "initiation-calibration:input-assignation"
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "trials-operation",
+        	phase == "0000000", 
+    			round == 0
+    			)
+    then
+    	$em.logs("initiation-calibration:input-assignation:trials-operation");
+    	$em.setPhase("initiation-calibration:input-assignation");
+		update( $em );
+end
+
+
+rule "initiation-calibration:reference#dt-retrieval-sample:valid"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "trials-operation",
+        	phase == "initiation-calibration:input-assignation", 
+    			round == 0, 
+    				facts.get("mock-name") == "QueryMapper-xls"
+    			)
+    then
+        $em.setPhase("initiation-calibration:reference#dt-retrieval-sample:valid");
+        mapper.relace($em.facts.get("mock-key").toString(), $em.facts.get("mock-value").toString());
+    	$em.facts.put("mock-result", reference.get(mapper.getQuery()));
+        update( $em );
+end
+

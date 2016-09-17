@@ -1,0 +1,263 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.model.EphemeralFact 
+import com.concept.ruleengine.model.EphemeralFactType
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.StringUtil.CustomRegex
+
+import java.sql.Timestamp
+import java.util.Map
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+
+
+function EphemeralMantle initiationSingleValidation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("return","ConflictedAllocation!");
+	
+	mapper.relace("_sqlmap_sd","extract_rmsoperationinfo");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	Map map = reference.getMap(mapper.getQuery());
+	
+	em.facts.put("_serviceType",map.get("iata_service_type_code"));
+	em.facts.put("_categoryCode",map.get("category_code"));
+	em.facts.put("_aircraftType",map.get("aircraft_type"));
+	em.facts.put("_airlineCode",map.get("airline_code"));
+	em.facts.put("_eta",map.get("est_on_block_time"));
+	em.facts.put("_etd",map.get("est_off_block_time"));
+
+	return em;
+}
+
+function EphemeralMantle initiationAvailabilityCheck(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for availability!");	
+	mapper.relace("_sqlmap_sd","retrieve_standconflictoperation");
+	
+	mapper.parameterized("STAND_CODE", em.facts.get("_standCode") );
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq") );
+	
+	Timestamp estOnBlockTime = StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss");
+	
+	mapper.parameterized(
+		"EST_ON_BLOCK_TIME_WITH_TIMEBUFFER", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(estOnBlockTime, em.facts.getInt("timeBuffer"), -1), 
+					"yyyy-MM-dd HH:mm:ss"));
+					
+	Timestamp estOffBlockTime = StringUtil.toTimestamp(em.facts.get("_etd"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"EST_OFF_BLOCK_TIME_WITH_TIMEBUFFER", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(estOffBlockTime, em.facts.getInt("timeBuffer")), 
+					"yyyy-MM-dd HH:mm:ss"));
+	
+	em.facts.putMap("standconflictoperation", reference.getMap(mapper.getQuery()));
+
+	return em;
+}
+
+function EphemeralMantle initiationOperabilityCheck(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	
+	
+	em.facts.put("isOperable",false);
+	em.logs("alocation-validity:initiated for operability!");
+	
+	mapper.relace("_sqlmap_sd","retrieve_standinoperation");
+	mapper.parameterized("STAND_CODE", em.facts.get("_standCode") );
+	mapper.parameterized(
+		"INOP_START_TIME", em.facts.get("_eta"));
+	mapper.parameterized(
+		"INOP_END_TIME", em.facts.get("_etd"));
+	
+	em.facts.put("standinoperation", reference.get(mapper.getQuery()));
+	return em;	
+}
+
+function EphemeralMantle preFitness(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("isStandFitness", 
+		wingConstraintsCheck(
+			em.facts.get("_standCode"), em.facts.get("_aircraftType"), mapper, reference));
+	
+	return em;	
+}
+
+function boolean wingConstraintsCheck(Object stand, Object aircraftType, 
+	QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_sd","retrieve_standmaxcapacity");
+	mapper.parameterized("STAND_CODE", stand);
+	Object standCapacity = reference.get(mapper.getQuery());
+	
+	if( standCapacity == null ) return false;
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", aircraftType );
+	double aircraftWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", standCapacity );
+	double standWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	return standWingSpan >= aircraftWingSpan;
+}
+
+function void accomodatesFitness(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_sd","update_aircraft_stand_parking_op_flags");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	mapper.parameterized("AIRCRAFT_SP_SEQ",  em.facts.get("_spSeq"));
+	reference.modify(mapper.getQuery());
+}
+
+rule "single-validation:initiation" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation",
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-validation:initiation");
+    	$em = initiationSingleValidation($em, mapper, reference);
+    	update( $em );
+end
+
+rule "single-validation:availability-stand" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:initiation",
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-validation:opearability-stand");
+    	$em = initiationOperabilityCheck($em, mapper, reference);
+    	update( $em );
+end
+
+
+rule "single-validation:available" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:availability-stand", 
+        		(CustomUtil.isNull(facts.getMapItem("standconflictoperation","count")) 
+        			|| facts.getMapItemInt("standconflictoperation","count") == 0),
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-validation:fitness-stand-initiation");
+    	update( $em );
+end
+
+rule "single-validation:inavailable" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:availability-stand", 
+        		!CustomUtil.isNull(facts.getMapItem("standconflictoperation","count")),
+        			 facts.getMapItemInt("standconflictoperation","count") != 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-validation:inavailable!!"); 
+    	$em.facts.put("return","ResourceInavailable");
+		$em.setPhase("single-validation:increments");
+		update( $em );
+end
+
+rule "single-validation:operable"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:opearability-stand", 
+        		facts.getInt("standinoperation") == 0,
+        			round == 0
+    			)
+    then
+    	
+    	
+    	$em = initiationAvailabilityCheck($em, mapper, reference);
+    	$em.setPhase("single-validation:availability-stand");
+    	update( $em );
+end
+
+rule "single-validation:inoperable" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:opearability-stand", 
+    			facts.getInt("standinoperation") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-validation:inoperability!!"); 
+    	$em.facts.put("return","InOperableReconciliated");
+		$em.setPhase("single-validation:increments");
+		update( $em );
+end
+
+rule "single-validation:fitness-initiation" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:fitness-stand-initiation",
+        		round == 0
+    			)
+    then
+		$em.setPhase("single-validation:fitness-stand");
+		$em = preFitness($em, mapper, reference);
+		update( $em );
+end
+
+
+rule "single-validation:infitness" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:fitness-stand", 
+        		!facts.getBoolean("isStandFitness"),
+        			round == 0
+    			)
+    then
+		$em.facts.put("return","InfitnessConstraints");
+		$em.setPhase("single-validation:infitness");
+end
+
+rule "single-validation:fitness"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:fitness-stand", 
+        		facts.getBoolean("isStandFitness"),
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-validation:fitness");
+    	$em.logs("alocated on validity:fitness stage!!");
+    	$em.facts.put("return","NoConflict");
+    	
+end
+
+rule "single-validation:fitness-assignation"
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-validation:fitness-stand",
+        		facts.getBoolean("onfitnessAssignation"),
+        			facts.getBoolean("isStandFitness"),
+        				round == 0
+    			)
+    then
+    	accomodatesFitness($em, mapper, reference);
+end

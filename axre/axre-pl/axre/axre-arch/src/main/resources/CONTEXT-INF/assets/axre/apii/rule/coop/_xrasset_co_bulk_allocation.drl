@@ -1,0 +1,207 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.coop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle allocationAssignment(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_co","extract_bulk_rmsoperation_offsets");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("EDGEKEY",em.facts.get("_rmsKey") );
+	mapper.parameterized("LIMIT",em.facts.getInt("bulklimit") );
+	em.facts.putList("onworkbulk", reference.getList(mapper.getQuery()));
+	
+	em.facts.put("bulk:carousel", 0);
+	
+	return em;		
+}
+
+function EphemeralMantle assignment(EphemeralMantle em){
+		
+	em = purge(em);
+	
+	em.facts.put("_rmsKey", em.facts.getListItemAt("onworkbulk", em.facts.getInt("bulk:carousel")));
+	em.facts.put("bulk:carousel", em.facts.getInt("bulk:carousel") + 1);
+	return em;		
+}
+
+function EphemeralMantle purge(EphemeralMantle em){
+	
+	em.facts.remove("_airlineCode");
+	em.facts.remove("_terminalCode");
+	em.facts.remove("closetime");
+	em.facts.remove("reclaim:i");
+	em.facts.remove("capacity:i");
+	em.facts.remove("reclaiminoperation");
+	em.facts.remove("_eta");
+	em.facts.remove("reclaimList:i");
+	em.facts.remove("reclaiminavailable");
+	em.facts.remove("reclaimList");
+	
+	em.facts.put("capacity:i", 0);
+	em.facts.put("onCapacityCheck", false);
+	
+	return em;		
+}
+
+function EphemeralMantle resourceDeflection(EphemeralMantle em, DecisionTable decisionTable,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	decisionTable.relace("_xdt_op_nonalocatedresource");
+	decisionTable.set("RESOURCE_TYPE", "CAROUSEL");
+	decisionTable.set("TERMINAL_CODE", em.facts.get("_terminalCode"));
+	decisionTable.laced();
+	
+	mapper.relace("_sqlmap_co","delete_flco_by_rmskey");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_co","insert_flight_coop");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	mapper.parameterized("CAROUSEL_CODE",  decisionTable.get("FICTIVE_RESOURCE"));
+	mapper.parameterized("CAROUSEL_OPEN_TIME",  em.facts.get("_eta"));
+	mapper.parameterized("CAROUSEL_CLOSE_TIME",  em.facts.get("closetime"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_co","update_rmsoperation_status");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+		
+	return em;		
+}
+
+rule "carousel-bulk-allocation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulkoffset") < facts.getInt("bulksize"),
+        			round == 0
+    			)
+    then
+    	
+    	$em = allocationAssignment($em, mapper, reference);
+    	$em.setPhase("bulk-allocation:assignation");
+		update ( $em );
+end
+
+rule "carousel-bulk-allocation:no-assignation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulksize") == 0,
+        			round == 0
+    			)
+    then
+    	$em.facts.put("return","NO CAROUSEL PROCESSED!!");
+    	$em.setPhase("bulk-allocation:no-assignation");
+end
+
+rule "carousel-bulk-allocation:assignation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:carousel") < facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em = assignment($em);
+    	$em.logs("carousel-bulk-allocation:assignation of RMSKEY " + 
+    		$em.facts.get("_rmsKey") + " - #"+ $em.facts.getInt("bulk:carousel") + 
+    			" offset:"+ $em.facts.getInt("bulkoffset") +"\n");
+    	$em.setPhase("single-allocation");
+    	update ( $em );
+end
+
+rule "carousel-bulk-allocation:reassignation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:carousel") >= facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("bulkoffset", $em.facts.getInt("bulkoffset") +  $em.facts.getInt("bulklimit"));
+    	$em.logs("INC - "+$em.facts.getInt("bulklimit") +" OFFSET  #"+ $em.facts.getInt("bulkoffset") +"\n");
+    	
+    	$em.facts.remove("onworkbulk");
+		$em.facts.put("bulk:carousel", 0);
+		$em.facts.put("reclaimList:i", 0);
+    	
+    	$em.setPhase("bulk-allocation");
+    	update ( $em );
+end
+
+rule "carousel-bulk-allocation:nonservicetype-operation"
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-allocation:validity", 
+        		facts.getList("nonServicetypeList").contains(facts.get("_serviceType")),
+	        		facts.get("_type") == "A", 
+	        			round == 0
+    			)
+    then
+    	$em.logs("carousel-bulk-allocation:nonservicetype-operation with no allocation!!\n\n");
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end
+
+rule "carousel-bulk-operation:single-allocation:ends"
+	salience 80
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:initiation", 
+        		facts.get("_type") == "A", 
+	        		facts.getList("reclaimList").size() <= facts.getInt("reclaimList:i"),
+		        		facts.getBoolean("onCapacityCheck"), 
+		        			facts.getInt("maximumCapacity") <= facts.getInt("capacity:i"),
+			        			round == 0
+    			)
+    then
+    	$em = resourceDeflection($em, decisionTable, mapper, reference);
+    
+    	$em.logs("bulk-operation:single-allocation:ends with no allocation!!\n\n");
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end
+
+rule "carousel-bulk-operation:single-allocation:available" 
+	salience 80
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:availability-reclaim", 
+        		(
+        			(facts.getNumeric("reclaiminavailable") == 0 
+        				&& !facts.getBoolean("onCapacityCheck")) 
+        					|| 
+        			(facts.getNumeric("reclaiminavailable") < facts.getInt("capacity:i") 
+        				&& facts.getBoolean("onCapacityCheck"))
+        		),
+        		facts.get("_type") == "A", 
+        		round == 0
+    		)
+    then		
+    	$em.logs("bulk-operation:single-allocation:available allocated!\n\n");
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end
+
+

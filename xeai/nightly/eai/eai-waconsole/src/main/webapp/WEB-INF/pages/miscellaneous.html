@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/system_style.css"
+	th:href="@{/ui/css/system_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">SYSTEM HEALTH MONITORS</span>
+		<div layout:fragment="main-content">
+			<div class="col-md-12">
+				<div class="panel">
+					<div class="panel-body">
+						<div class="col-md-8">
+							<canvas id="radarChart"></canvas>
+						</div>
+						
+						<div class="col-lg-4">
+							<table class="table table-hover no-margins">
+								<thead>
+									<tr>
+										<th>Int.ed System</th>
+										<th>Msg. In</th>
+										<th>Processed Msg.</th>
+										<th>Failed Msg.</th>
+										<th>Invalid Msg.</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td><small>Axpert-FMM</small></td>
+										<td>1010</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 85%</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 10%</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 5%</td>
+									</tr>
+									<tr>
+										<td><small>Axpert-RMS</small></td>
+										<td>939</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 90%</td>
+										<td class="text-navy"><i class="fa fa-level-down"></i> 5%</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 5%</td>
+									</tr>
+									<tr>
+										<td><small>Axpert-AMS</small></td>
+										<td>1000</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 80%</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 7%</td>
+										<td class="text-navy"><i class="fa fa-level-up"></i> 13%</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<div layout:fragment="ext-script-definition">
+
+			<!-- Flot -->
+			<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.js}"></script>
+			<script
+				src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js}"></script>
+			<script
+				src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js}"></script>
+			<script
+				src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js}"></script>
+
+			<!-- Custom and plugin javascript -->
+			<script src="../../ui/ui-bootstrap/js/inspinia.js"
+				th:src="@{/ui/ui-bootstrap/js/inspinia.js}"></script>
+			<script src="../../ui/ui-bootstrap/js/plugins/pace/pace.min.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/pace/pace.min.js}"></script>
+
+			<!-- ChartJS-->
+			<script src="../../ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js"
+				th:src="@{/ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js}"></script>
+		</div>
+		<div layout:fragment="final-script-onstage">
+			<script src="../../ui/js/system_script.js"
+				th:src="@{/ui/js/system_script.js}"></script>
+		</div>
+</body>
+
+</html>

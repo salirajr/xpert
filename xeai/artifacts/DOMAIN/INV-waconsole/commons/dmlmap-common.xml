@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="commonDmlMapDao"
+		class="com.xybase.ax.eai.waconsole.appliance.qmap.dao.QMapDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="conceal">
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map>
+						<entry key="plain">
+							<value>
+								<![CDATA[
+									#QUERY#
+								]]>
+							</value>
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+		</property>
+		<constructor-arg>
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map>
+						<entry key="event-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_event 
+												( event_base, event_group, event_name, event_owner, event_status, integration_type, system_source, system_source_message_type, system_target, system_target_message_type) 
+											VALUES 
+												( ?, ?, ?, ?, CAST( ? AS int) , CAST( ? AS BIGINT) , ?, ?, ?, ? );
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="event-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_event SET
+												                event_base = ?, 
+												               event_group = ?, 												                
+												               event_owner = ?, 
+												              event_status = CAST( ? AS int), 
+												          integration_type = CAST( ? AS BIGINT ), 
+												             system_source = ?, 
+												system_source_message_type = ?, 
+												             system_target = ?, 
+												system_target_message_type = ?
+											WHERE event_name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="event-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											DELETE FROM xeai_event
+											WHERE event_name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- =============================================================transform 
+							========================================================= -->
+
+						<entry key="transform-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											insert into xeai_transform 
+												(transform_id,transform_template,transform_type) 
+											values 
+												(to_number(?,'999999999'),?,?)
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="transform-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_transform SET
+															transform_template = ?,
+															transform_type = ?
+											WHERE transform_id = to_number(?,'999999999')
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="transform-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_transform WHERE transform_id = to_number(?,'999999999')
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- =============================================================transform-rule 
+							========================================================= -->
+
+						<entry key="transform-rule-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											insert into xeai_transform_rule 
+												(transform_id,transform_rule_id,transform_rule_source,transform_rule_target,transform_rule_config,transform_rule_matrix) 
+											values 
+												(to_number(?,'999999999'),to_number(?,'999999999'),?,?,to_number(?,'999999999'),?)
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="transform-rule-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_transform_rule SET
+															transform_rule_source = ?,
+															transform_rule_target = ? ,
+															transform_rule_config = to_number(?,'999999999'),
+															transform_rule_matrix = ?
+											WHERE transform_id = to_number(?,'999999999')
+												and transform_rule_id = to_number(?,'999999999')
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="transform-rule-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_transform_rule xtr
+											WHERE
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna; xtr.transform_id;= to_number(?,'999999999');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xtr.transform_rule_id;= to_number(?,'999999999');is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- ============================================================= 
+							context ========================================================= -->
+
+						<entry key="context-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_context ( context_alias, context_code, context_description, context_site) 
+											VALUES ( ?, ?, ?, ? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="context-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_context SET
+															context_alias = ?,
+															context_description = ? ,
+															context_site = ?
+											WHERE context_code = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="context-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_context
+											WHERE context_code = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- ============================================================= 
+							xeai_lookup_archcomp ========================================================= -->
+
+						<entry key="lookup-archcomp-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_lookup_archcomp ( key, name, remarks, value) 
+											VALUES ( ?, ?, ?, ? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="lookup-archcomp-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_lookup_archcomp SET
+															remarks = ?,
+															value = ?
+											WHERE key = ? and name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="lookup-archcomp-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_lookup_archcomp
+											WHERE key = ? and name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- ============================================================= 
+							xeai_lookup_data ========================================================= -->
+
+						<entry key="lookup-data-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_lookup_data ( key, name, remarks, value) 
+											VALUES ( ?, ?, ?, ? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="lookup-data-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_lookup_data SET
+															remarks = ?,
+															value = ?
+											WHERE key = ? and name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="lookup-data-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_lookup_data
+											WHERE key = ? and name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<!-- ============================================================= 
+							xeai_cipher ========================================================= -->
+
+						<entry key="cipher-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_cipher ( xeai_cipher_key, xeai_cipher_type) 
+											VALUES ( ?, ? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipher-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_cipher SET
+															xeai_cipher_type = ?
+											WHERE xeai_cipher_key = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipher-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_cipher
+											WHERE xeai_cipher_key = ? 
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_cipher_rule ========================================================= -->
+
+						<entry key="cipher-rule-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_cipher_rule ( xeai_cipher_key, xeai_cipher,xeai_cipher_parameters,xeai_cipher_group) 
+											VALUES ( ?, ?, ? , (CASE WHEN ? = '-' THEN NULL ELSE ? END) )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipher-rule-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_cipher_rule SET
+															xeai_cipher_parameters = ?,
+															xeai_cipher_group = (CASE WHEN ? = 'null' THEN NULL ELSE ? END) 
+											WHERE xeai_cipher_key = ? and xeai_cipher = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipher-rule-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_cipher_rule
+											WHERE 
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna; xeai_cipher_key;= ? ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xeai_cipher;= ? ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_group ========================================================= -->
+
+						<entry key="group-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_group ( group_key , group_identifier ) 
+											VALUES ( ? ,? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="group-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_group SET
+															group_identifier = ?
+											WHERE group_key = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="group-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_group
+											WHERE group_key = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_owner ========================================================= -->
+
+						<entry key="owner-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_owner ( name , alias , baseuri , domain ) 
+											VALUES ( ? ,? , ? , ? )
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="owner-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_owner SET
+															alias = ?,
+															baseuri = ?,
+															domain = ?
+											WHERE name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="owner-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_owner
+											WHERE name = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_message_versioning ========================================================= -->
+
+						<entry key="message-versioning-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_message_versioning ( message_name , message_group , message_type , message_template , message_sample , version , description ) 
+											VALUES ( ? ,? , ? , ? , ? , ? , ?)
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="message-versioning-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_message_versioning SET
+															message_type = ?,
+															message_template = ?,
+															message_sample = ? ,
+															version = ? ,
+															description = ?
+											WHERE message_name = ? and message_group = ? 
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="message-versioning-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											delete from xeai_message_versioning
+											WHERE message_name = ? and message_group = ? 
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_buscontext ========================================================= -->
+
+						<entry key="buscontext-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_buscontext
+											   ( xeai_bus_code, context_level, context_state, context_code, context_sequence, xeai_bus_code_binder) 
+											VALUES
+											   (?, ?, CAST( ? AS bigint), ?, CAST( ? AS bigint), (CASE WHEN ? = '' THEN NULL ELSE ? END))
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="buscontext-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_buscontext 
+												SET 
+													context_level=?, 
+													context_state=CAST( ? AS bigint), 
+													context_sequence=CAST( ? AS bigint), 
+													xeai_bus_code_binder = 
+														(CASE 
+															WHEN 
+																? = '' 
+															THEN 
+																xeai_bus_code_binder 
+																ELSE ? 
+															END) 
+												WHERE xeai_bus_code=? and context_code=?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="buscontext-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											DELETE from xeai_buscontext
+											WHERE xeai_bus_code=? and context_code=? 
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<!-- ============================================================= 
+							xeai_bus ========================================================= -->
+
+						<entry key="bus-insert">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											INSERT INTO xeai_bus ( xeai_bus_cipher, xeai_bus_code, xeai_bus_group, xeai_bus_name) 
+											VALUES ( ?, ?, ?, ? );
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="bus-update">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											UPDATE xeai_bus SET
+												xeai_bus_cipher = ?,  
+												xeai_bus_group = ?, 
+												xeai_bus_name = ?'
+											WHERE 
+											 	xeai_bus_code = ?
+																					]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="bus-delete">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											DELETE FROM xeai_bus 
+											WHERE xeai_bus_code = ?
+										]]>
+									</value>
+								</constructor-arg>
+							</bean>
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+
+	</bean>
+
+</beans>

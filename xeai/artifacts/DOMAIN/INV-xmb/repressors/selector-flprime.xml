@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.2.xsd http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd">
+
+	<int:channel id="defaultChannelIn" />
+
+	<!-- Out-going processing -->
+	<int:chain id="defaulChainRepressor" input-channel="defaultChannelIn"
+		output-channel="recepientsChannel">
+		<int:transformer ref="xmbMessageConverter" />
+		<int:header-enricher>
+			<int:header name="OriginSystem" expression="payload.origSystem" />
+			<int:header name="Version" expression="payload.msgVersion" />
+		</int:header-enricher>
+		<!-- add by azis -->
+		<int:filter ref="messageSelector"
+			throw-exception-on-rejection="true">
+		</int:filter>
+	</int:chain>
+
+	<int:channel id="recepientsChannel" />
+
+	<int:recipient-list-router id="recipientRouters"
+		input-channel="recepientsChannel" default-output-channel="outboundAxpertDefaultQueue">
+		<int:recipient channel="outboundAxQAMS"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('AMS')" />
+		<int:recipient channel="outboundAxQRMS"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('RMS')" />
+		<int:recipient channel="outboundAxQFSM"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('FSM')" />
+		<int:recipient channel="outboundAxQODB"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('ODB')" />
+		<int:recipient channel="outboundAxQIICS"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('IICS')" />
+		<int:recipient channel="outboundEtcQGM"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('GM')" />
+		<int:recipient channel="outboundEtcQFIDS"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('FIDS')" />
+		<int:recipient channel="outboundEtcQACDM"
+			selector-expression="@xmbIddEvents.get(headers['XeaiEventID']).get('system_target').contains('ACDM')" />
+	</int:recipient-list-router>
+	<int:channel id="outboundAxpertDefaultQueue" />
+
+	<int:channel id="outboundAxQAMS" />
+	<int:header-enricher id="enrichedAxQAMS"
+		input-channel="outboundAxQAMS" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-AMS'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundAxQRMS" />
+	<int:header-enricher id="enrichedAxQRMS"
+		input-channel="outboundAxQRMS" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-RMS'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundAxQFSM" />
+	<int:header-enricher id="enrichedAxQFSM"
+		input-channel="outboundAxQFSM" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-FSM'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundAxQODB" />
+	<int:header-enricher id="enrichedAxQODB"
+		input-channel="outboundAxQODB" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-ODB'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundAxQIICS" />
+	<int:header-enricher id="enrichedAxQIICS"
+		input-channel="outboundAxQIICS" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-IICS'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundEtcQGM" />
+	<int:header-enricher id="enrichedEtcQGM"
+		input-channel="outboundEtcQGM" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'EXT-GM'" />
+	</int:header-enricher>
+	
+	<int:channel id="outboundEtcQFIDS" />
+	<int:header-enricher id="enrichedEtcQFIDS"
+		input-channel="outboundEtcQFIDS" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'AXPERT-FIDS'" />
+	</int:header-enricher>
+	
+	<int:channel id="outboundEtcQACDM" />
+	<int:header-enricher id="enrichedEtcQACDM"
+		input-channel="outboundEtcQACDM" output-channel="outboundQueueAxpert">
+		<int:header name="Endpoint" expression="'EXT-ACDM'" />
+	</int:header-enricher>
+
+	<int:channel id="outboundQueueAxpert" />
+
+</beans>

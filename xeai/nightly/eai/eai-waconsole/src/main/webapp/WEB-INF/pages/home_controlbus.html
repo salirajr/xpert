@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<!-- <link href="../../ui/css/controlbus_style.css" -->
+<!-- 	th:href="@{/ui/css/controlbus_style.css}" rel="stylesheet"></link> -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+</head>
+
+<body>
+	<span layout:fragment="page-title">CENTRALIZED BUS CONTROLS</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default  btn-outline"
+			id="act-add-new-controlbus" title="Add new Control Bus">
+			<i class="fa fa-plus"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Search Bus" id="act-search-criteria-controlbus">
+			<i class="fa fa-search"></i>
+		</button>
+		<button type="button" class="btn btn-default  btn-outline"
+			id="act-bus-load" title="Define Controls">
+			<i class="fa fa-steam"></i>
+		</button>
+		<button type="button" class="btn btn-default  btn-outline"
+			title="Configure Bus" id="act-configure-controlbus"
+			data-toggle="collapse" data-target="#collapseOne">
+			<i class="fa fa-slack"></i>
+		</button>
+		<button type="button" class="btn btn-default  btn-outline"
+			title="Reset View" id="act-reset-view-controlbus">
+			<i class="fa fa-times"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default imx-screen-adjustment">
+			<div class="panel-heading centered">
+				<span id="lbl-correlation-id" class="">OWNER: IMB</span> <span
+					id="lbl-event-name" class="">,CONTAINER: PREPROCESSOR</span> <span
+					id="lbl-audit-type" class="">,CONTEXT: CONTROLBUS, LEVEL:
+					BASE</span>
+			</div>
+
+			<div id="collapseOne" class="panel-collapse collapse in">
+				<div class="panel-body">
+					<div class="col-sm-12">
+						<div class="row">
+							<div class="col-sm-3">
+								<div class="row">
+									<table id="tbl-owner" class="table table-striped">
+										<thead>
+											<tr>
+												<th>Owner</th>
+												<th>State</th>
+											</tr>
+										</thead>
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-4">
+								<div class="row">
+									<table id="tbl-flcontainer" class="table table-striped">
+										<thead>
+											<tr>
+												<th>Container</th>
+												<th>Flow Group</th>
+											</tr>
+										</thead>
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-5">
+								<div class="row">
+									<table id="tbl-buscontext" class="table table-striped">
+										<thead>
+											<tr>
+												<th>Alias</th>
+												<th>*</th>
+												<th>Level</th>
+											</tr>
+										</thead>
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<input type="text" id="tempif-owner" value="-" class="hidden-tiny" />
+		<input type="text" class="hidden-tiny" id="tempif-flcontainer"
+			value="-" /> <input type="text" class="hidden-tiny"
+			id="tempif-context" value="-" /><input type="text"
+			class="hidden-tiny" id="tempif-bus" value="-" />
+		<div id="modal-container">
+			<div class="modal inmodal fade" id="mdl-act-component" tabindex="-1"
+				role="dialog" aria-hidden="true">
+				<div id="cnt-dialogcomponent" class="modal-dialog modal-lg">
+					<div class="row">
+						<div class="modal-content">
+							<div class="modal-body imx-screen-adjustment">
+								<div class="row">
+									<div id="cnt-defcomponent" class="col-sm-4">
+										<table id="tbl-component"
+											class="table table-striped table-bordered">
+											<thead>
+												<tr>
+													<td colspan="3" class="centered">COMPONENT</td>
+												</tr>
+												<tr>
+													<th>#</th>
+													<th>Name</th>
+													<th></th>
+												</tr>
+											</thead>
+											<tbody>
+
+											</tbody>
+										</table>
+									</div>
+									<div id="cnt-controlcomponent" class="col-sm-8">
+										<div class="row">
+											<table id="tbl-control-action"
+												class="table table-striped table-bordered b-r b-l">
+												<thead>
+													<tr>
+														<th colspan="4" class="centered">ACTION</th>
+													</tr>
+												</thead>
+												<tbody>
+													<tr>
+														<th>Component</th>
+														<td id="if-selected-bus">No component selected</td>
+														<th>Group</th>
+														<td id="if-selected-type">Type is not identified</td>
+													</tr>
+													<tr>
+														<th>Cipher</th>
+														<td id="if-selected-cipher">Cipher is not identified</td>
+														<th>Rule</th>
+														<td><select id="if-selected-rule"
+															class="form-control input-sm">
+																<option value="CUSTOM">CUSTOM</option>
+														</select><input type="text" placeholder="" id="if-selected-operand"
+															class="form-control input-sm " style="margin-top: 5px;"></input>
+															<button type="button" id="act-callcommand"
+																class="btn btn-primary btn-sm" style="margin-top: 5px;">
+																Call</button></td>
+
+													</tr>
+
+												</tbody>
+											</table>
+										</div>
+										<div class="row">
+											<table id="tbl-response-buscontrol"
+												class="table table-striped table-bordered">
+												<thead>
+													<tr>
+														<td colspan="2" class="centered">RESPONSE</td>
+													</tr>
+													<tr>
+														<th>Identifier</th>
+														<th>Value</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/controlbus_script.js"
+			th:src="@{/ui/js/controlbus_script.js}"></script>
+	</div>
+</body>
+
+</html>

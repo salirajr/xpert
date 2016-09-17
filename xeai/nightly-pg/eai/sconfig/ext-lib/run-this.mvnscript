@@ -1,0 +1,3 @@
+mvn install:install-file -Dfile=xmb-1.0.jar -DgroupId=com.xybase.xmb -DartifactId=xmb -Dversion=1.0 -Dpackaging=jar
+
+mvn install:install-file -Dfile=ejb-2.1.jar -DgroupId=javax.ejb -DartifactId=ejb -Dversion=2.1 -Dpackaging=jar

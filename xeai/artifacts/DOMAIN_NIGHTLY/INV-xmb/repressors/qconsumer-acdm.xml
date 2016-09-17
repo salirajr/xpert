@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration 
+		http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/jms
+		http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.2.xsd
+		http://www.springframework.org/schema/integration/http 
+		http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd  
+		http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms">
+
+	<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="#{@xmBrokerQueue.get('EXT-ACDM')}" />
+	</bean>
+
+	<bean id="defaultMessageListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+		destroy-method="destroy">
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+		<property name="destination" ref="queue" />
+		<property name="sessionTransacted" value="true" />
+	</bean>
+
+	<int-jms:message-driven-channel-adapter
+		id="messageAdapter" error-channel="errorHandler" channel="defaultChannelIn"
+		container="defaultMessageListenerContainer" message-converter="xmbTextMessageConverter" />
+
+	<int:channel id="defaultChannelIn" />
+
+
+
+	<bean id="transfromerFactory"
+		class="com.xybase.ax.eai.archcomp.transformer.factory.TransfromerFactory">
+		<property name="transformDao" ref="transformDao" />
+		<property name="transformRuleDao" ref="transformRuleDao" />
+	</bean>
+
+	<bean id="objectExtractor"
+		class="com.xybase.ax.eai.archcomp.transformer.extract.ObjectExtractor" />
+
+
+	<bean id="jsonInjector"
+		class="com.xybase.ax.eai.archcomp.transformer.inject.JsonInjector" />
+
+	<bean id="objectConverter"
+		class="com.xybase.ax.eai.archcomp.message.converter.util.ObjectConverter" />
+
+	<bean id="jsonConverter"
+		class="com.xybase.ax.eai.archcomp.message.converter.util.JsonConverter" />
+
+	<bean id="stringUtil" class="com.xybase.ax.eai.archcomp.common.util.StringUtil" />
+	<bean id="dateUtil" class="com.xybase.ax.eai.archcomp.common.util.DateUtil" />
+	<bean id="util" class="com.xybase.ax.eai.archcomp.common.util.TransformUtil" />
+
+	<bean id="transformationSpELProcessor"
+		class="com.xybase.ax.eai.archcomp.transformer.util.SpELProcessor">
+		<property name="utils">
+			<array>
+				<ref bean="stringUtil" />
+				<ref bean="dateUtil" />
+				<ref bean="util" />
+			</array>
+		</property>
+	</bean>
+
+	<int:router input-channel="defaultChannelIn" expression="payload.msgCode">
+<!-- 		<int:mapping value="AIRCRAFTYPEUPDATE" channel="channelInAIRCRAFTYPEUPDATE" /> -->
+<!-- 		<int:mapping value="AIRCRAFTDESCRIPTION" channel="channelAIRCRAFTDESCRIPTION" /> -->
+		<int:mapping value="AODBAFSADHOC" channel="channelAODBAFSADHOC" />
+		<int:mapping value="AODBAFSUPDATE" channel="channelAODBAFSUPDATE" />
+		<int:mapping value="FLIGHTMOVETOHANGAR" channel="channelFLIGHTMOVETOHANGAR" />
+		<int:mapping value="RESOURCEFROMFMM" channel="channelRESOURCEFROMFMM" />
+		<int:mapping value="AMSFLIGHTUPDATE" channel="channelAMSFLIGHTUPDATE" />
+		<int:mapping value="RESOURCEFROMRMS" channel="channelRESOURCEFROMRMS" />
+		
+	</int:router>
+
+	<!-- <int:channel id="channelInAIRCRAFTYPEUPDATE" />
+	<int:chain input-channel="channelInAIRCRAFTYPEUPDATE"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-AIRCRAFTYPEUPDATE"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-AIRCRAFTYPEUPDATE" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="3" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+	</bean>
+
+	<int:channel id="channelAIRCRAFTDESCRIPTION" />
+	<int:chain input-channel="channelAIRCRAFTDESCRIPTION"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-AIRCRAFTDESCRIPTION"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-AIRCRAFTDESCRIPTION" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="4" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+	</bean> -->
+
+	<!-- AODBAFSADHOC -->
+	<int:channel id="channelAODBAFSADHOC" />
+	<int:chain input-channel="channelAODBAFSADHOC"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-AODBAFSADHOC"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-AODBAFSADHOC" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="26" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- AODBAFSUPDATE -->
+	<int:channel id="channelAODBAFSUPDATE" />
+	<int:chain input-channel="channelAODBAFSUPDATE"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-AODBAFSUPDATE"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-AODBAFSUPDATE" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="24" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- FLIGHTMOVETOHANGAR -->
+	<int:channel id="channelFLIGHTMOVETOHANGAR" />
+	<int:chain input-channel="channelFLIGHTMOVETOHANGAR"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-FLIGHTMOVETOHANGAR"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-FLIGHTMOVETOHANGAR" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="24" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- RESOURCEFROMFMM -->
+	<int:channel id="channelRESOURCEFROMFMM" />
+	<int:chain input-channel="channelRESOURCEFROMFMM"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-RESOURCEFROMFMM"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-RESOURCEFROMFMM" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="34" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- AMSFLIGHTUPDATE -->
+	<int:channel id="channelAMSFLIGHTUPDATE" />
+	<int:chain input-channel="channelAMSFLIGHTUPDATE"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-AMSFLIGHTUPDATE"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-AMSFLIGHTUPDATE" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="34" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- RESOURCEFROMRMS -->
+	<int:channel id="channelRESOURCEFROMRMS" />
+	<int:chain input-channel="channelRESOURCEFROMRMS"
+		output-channel="channelOut">
+		<int:transformer expression="payload.text"></int:transformer>
+		<int:service-activator ref="transformHandler-RESOURCEFROMRMS"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+	<bean id="transformHandler-RESOURCEFROMRMS" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="32" />
+				<property name="extractor" ref="objectExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigIn">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="3" index="2" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="4" index="2" />
+			</bean>
+		</property>
+	</bean>
+
+	<int:channel id="channelOut">
+	</int:channel>
+	<int-http:outbound-channel-adapter
+		channel="channelOut"
+		url="http://192.168.88.75:8081/EaiXystubs/async/echo/perls/MessageReceiver.do"
+		http-method="POST">
+	</int-http:outbound-channel-adapter>
+
+
+
+
+</beans>

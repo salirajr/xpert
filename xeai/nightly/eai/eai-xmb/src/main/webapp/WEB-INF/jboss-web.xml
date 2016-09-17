@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+	<ejb-ref>
+		<ejb-ref-name>XmbEjbIReceiver</ejb-ref-name>
+		<jndi-name>ejb/XmbEjbIReceiver</jndi-name>
+		<ejb-ref-type>Session</ejb-ref-type>
+	</ejb-ref>
+</jboss-web>

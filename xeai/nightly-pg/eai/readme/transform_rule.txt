@@ -1,0 +1,9 @@
+Transformation
+	boundary: DB
+	ref: transform_rule, transform_rule_template
+	**
+		- rule_id column in transform_rule, is Key for transformation rule.
+		- rule_id column in transform_rule, Start with 4 digit Number
+		- rule_id column in transform_rule, Initially is 1000, only use for configuration Rule/Baseline perusal
+		- rule_item_id column in transform_rule, will initially leap 5 points,
+			eg: 1000, 1005, 1010

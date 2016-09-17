@@ -1,0 +1,80 @@
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<!-- Definition for lookup bean -->
+	<bean id="archLookupDao" class="com.xybase.ax.eai.archcomp.lookup.dao.LookupDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select key, value from xeai_lookup_archcomp where name = ?"></property>
+	</bean>
+	<bean id="dataLookupDao" class="com.xybase.ax.eai.archcomp.lookup.dao.LookupDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select key, value from xeai_lookup_data where name = ?"></property>
+	</bean>
+
+	<bean id="contextLarikDao" class="com.xybase.ax.eai.archcomp.larik.dao.LarikDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query">
+			<value>
+				<![CDATA[
+				select
+				   xc.context_site  
+				from
+				   xeai_flcontainer xf 
+				join
+				   xeai_bus xb 
+				      on xf.container_bus=xb.xeai_bus_code 
+				join
+				   xeai_buscontext xbc 
+				      on xf.container_bus = xbc.xeai_bus_code 
+				join
+				   xeai_context xc 
+				      on xbc.context_code = xc.context_code 
+				where
+				   xbc.context_state = 1
+				   and xbc.context_level = 'BASE' 
+				   and xf.container_owner = ? 
+				   and xf.container_flproof = ?
+				order by
+				   xbc.context_sequence desc		
+				]]>
+			</value>
+		</property>
+	</bean>
+
+	<bean id="contextLookupDao" class="com.xybase.ax.eai.archcomp.lookup.dao.LookupDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query">
+			<value>
+				<![CDATA[
+				select
+				   xc.context_alias,
+				   xc.context_site  
+				from
+				   xeai_flcontainer xf   
+				join
+				   xeai_bus xb 
+				      on xf.container_bus=xb.xeai_bus_code  
+				join
+				   xeai_buscontext xbc 
+				      on xf.container_bus = xbc.xeai_bus_code  
+				join
+				   xeai_context xc 
+				      on xbc.context_code = xc.context_code  
+				where
+				   xbc.context_state = 1 
+				   and xbc.context_level = 'BINDERKEY'  
+				   and xf.container_owner = ?   
+				   and xf.container_flproof = ?
+				order by
+				   xbc.context_sequence desc;		
+				]]>
+			</value>
+		</property>
+	</bean>
+
+</beans>

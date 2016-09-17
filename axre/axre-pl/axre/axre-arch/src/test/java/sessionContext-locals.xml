@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<!-- Initialization for data source -->
+	<bean id="rmsDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<!-- 10.8.0.5 -->
+		<property name="url" value="jdbc:postgresql://192.168.88.90:5432/rms_ckg" />
+		<property name="username" value="postgres" />
+		<property name="password" value="postgres" />
+	</bean>
+	
+	<bean id="rmsOraSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.OracleDriver" />
+		<!-- 10.8.0.5 -->
+		<property name="url" value="jdbc:oracle:thin:@192.168.88.78:1521:poc" />
+		<property name="username" value="rms" />
+		<property name="password" value="rmsmaster" />
+	</bean>
+
+	<!-- Definition for ReferenceDAO bean -->
+	<bean id="rmsReference" class="com.concept.ruleengine.reference.dao.ReferenceDAOImpl">
+		<property name="dataSource" ref="rmsOraSource" />
+	</bean>
+
+	<bean id="xlsQueryMapper"
+		class="com.concept.ruleengine.reference.mapper.QueryMapperXlsImpl" />
+
+	<bean id="xlsDecisionTable" class="com.concept.ruleengine.dt.model.DecisionTableXlsImpl" />
+
+</beans>

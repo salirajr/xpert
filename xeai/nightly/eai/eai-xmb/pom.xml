@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.xybase.ax</groupId>
+		<artifactId>eai</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>eai-xmb</artifactId>
+	<name>eai-xmb</name>
+	<url>http://maven.apache.org</url>
+	<packaging>war</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<activemq.core.version>5.7.0</activemq.core.version>
+		<spring.integration.jms.version>4.2.2.RELEASE</spring.integration.jms.version>
+		<org.jboss.as.version>7.1.1.Final</org.jboss.as.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.ejb</groupId>
+			<artifactId>ejb</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.xybase.ax.eai</groupId>
+			<artifactId>eai-archcomp</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-core</artifactId>
+			<version>${activemq.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-jms</artifactId>
+			<version>${spring.integration.jms.version}</version>
+		</dependency>
+		<dependency>
+			<!-- TRUE -->
+			<groupId>org.jboss.as</groupId>
+			<artifactId>jboss-as-ejb-client-bom</artifactId>
+			<version>${org.jboss.as.version}</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<!-- Handled by Server Datasource! -->
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>EaiXmb</finalName>
+	</build>
+</project>

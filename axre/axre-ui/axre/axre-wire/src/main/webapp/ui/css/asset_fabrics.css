@@ -1,0 +1,26 @@
+.ace_editor {
+	position: relative !important;
+	border: 1px solid lightgray;
+	margin: auto;
+	height: 400px;
+	width: 100%;
+}
+
+.scrollmargin {
+	height: 400px;
+	text-align: center;
+}
+
+.jstree-open>.jstree-anchor>.fa-folder:before {
+	content: "\f07c";
+}
+
+.jstree-default .jstree-icon.none {
+	width: 0;
+}
+
+.ibox-content.scroolable {
+	overflow: auto;
+	width: 100;
+	font-size: 85%;
+}

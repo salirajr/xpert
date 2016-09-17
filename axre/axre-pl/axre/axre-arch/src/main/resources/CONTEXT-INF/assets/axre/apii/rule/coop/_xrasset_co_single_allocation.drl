@@ -1,0 +1,346 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.coop
+
+//list any import classes here.
+
+import java.util.Map
+
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+import java.util.Date
+
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle singleAllocationInitiation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference, 
+			DecisionTable decisionTable){
+			
+	mapper.relace("_sqlmap_co","retrieve_rmsoperation");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey"));
+	Map map = reference.getMap(mapper.getQuery());
+	
+	em.facts.put("_serviceType",map.get("iata_service_type_code"));
+	/* em.facts.put("_eta",DateUtil.toString(
+    		StringUtil.toTimestamp(em.facts.get("in0"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss")); */
+    em.facts.put("_eta", map.get("etad"));
+	em.facts.put("_terminalCode",map.get("terminal_code"));
+	em.facts.put("_airlineCode",map.get("airline_code"));
+	
+	mapper.relace("_sqlmap_co","retrieve_vr_of_contact_open_time_co");
+	em.facts.put("contactOpentime", reference.getNumeric(mapper.getQuery()));
+	
+	int leapMinute = (int) Math.floor(em.facts.getNumeric("contactOpentime"));
+	
+	em.facts.put(
+		"closetime", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(
+					StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss"), 
+						leapMinute), "yyyy-MM-dd HH:mm:ss"));
+						
+	em.facts.put("return","NoAllocationAvailable");
+	return em;	
+}
+
+function EphemeralMantle initiationAllocation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference, 
+			DecisionTable decisionTable){
+			
+	mapper.relace("_sqlmap_co","retrieve_ls_reclaims_terminal");
+	mapper.parameterized("TERMINAL_CODE", em.facts.get("_terminalCode") );
+	em.facts.putList("reclaimList", reference.getList(mapper.getQuery()));
+	em.facts.put("reclaimList:i",0);
+	
+	return em;
+}
+
+function EphemeralMantle initiationAvailability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("single-allocation:processing for availability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictavailability");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey") );
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("reclaim:i") );
+	
+	Timestamp carouselOpenTime = StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"CAROUSEL_OPEN_TIME", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(carouselOpenTime, em.facts.getInt("timeBuffer"), -1), 
+					"yyyy-MM-dd HH:mm:ss"));
+					
+	/* mapper.parameterized("CAROUSEL_OPEN_TIME", em.facts.get("_eta") ); */
+	
+	Timestamp carouselCloseTime = StringUtil.toTimestamp(em.facts.get("closetime"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"CAROUSEL_CLOSE_TIME", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(carouselCloseTime, em.facts.getInt("timeBuffer")), 
+					"yyyy-MM-dd HH:mm:ss"));
+	/* mapper.parameterized("CAROUSEL_CLOSE_TIME", em.facts.get("closetime") ); */
+	
+	em.facts.put("reclaiminavailable", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+function EphemeralMantle initiationOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for operability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictoperation");
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("reclaim:i") ); 
+	mapper.parameterized("INOP_START_TIME", em.facts.get("_eta") );
+	mapper.parameterized("INOP_END_TIME", em.facts.get("closetime") );
+	
+	em.facts.put("reclaiminoperation", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+
+function void reassignOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_co","delete_flco_by_rmskey");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_co","insert_flight_coop");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	mapper.parameterized("CAROUSEL_CODE",  em.facts.get("reclaim:i"));
+	mapper.parameterized("CAROUSEL_OPEN_TIME",  em.facts.get("_eta"));
+	mapper.parameterized("CAROUSEL_CLOSE_TIME",  em.facts.get("closetime"));
+	reference.modify(mapper.getQuery());
+}
+
+function void reaccomodatesOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_co","update_rmsoperation_status");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+}
+
+rule "carousel-single-allocation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-allocation", 
+    			round == 0
+			)
+    then
+    	$em = singleAllocationInitiation($em, mapper, reference, decisionTable);
+		$em.setPhase("single-allocation:validity");
+		update( $em );
+end
+
+rule "carousel-single-allocation:nonservicetype-operation"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-allocation:validity", 
+        		facts.getList("nonServicetypeList").contains(facts.get("_serviceType")),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:ends of non-service operation!!!!");
+    	$em.setPhase("single-allocation:ends");
+end
+
+rule "carousel-single-allocation:initiation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-allocation:validity", 
+        		!facts.getList("nonServicetypeList").contains(facts.get("_serviceType")),
+    				round == 0
+			)
+    then
+    	$em = initiationAllocation($em, mapper, reference, decisionTable);
+		$em.logs("single-allocation initiation!!");
+		$em.setPhase("single-allocation:initiation");
+		$em.logs($em);
+		update( $em );
+end
+
+rule "carousel-single-allocation:increments" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:increments", 
+        		round == 0
+    		)
+    then
+    	$em.setPhase("single-allocation:initiation");
+    	$em.facts.put("reclaimList:i", $em.facts.getInt("reclaimList:i") + 1);
+    	update( $em );
+end
+
+rule "carousel-single-allocation:ends"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:initiation", 
+        		facts.getList("reclaimList").size() <= facts.getInt("reclaimList:i"),
+	        		facts.getBoolean("onCapacityCheck"), 
+	        			facts.getInt("maximumCapacity") <= facts.getInt("capacity:i"),
+		        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:ends with no allocation!!");
+    	$em.setPhase("single-allocation:ends");
+end
+
+rule "carousel-single-allocation:increments-capacity-check"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:initiation",
+        		facts.getList("reclaimList").size() <= facts.getInt("reclaimList:i"),
+	        		facts.getBoolean("onCapacityCheck"), 
+	        			facts.getInt("maximumCapacity") > facts.getInt("capacity:i"),
+		        			round == 0
+    			)
+    then
+		$em.facts.put("reclaimList:i", 0);
+		$em.facts.put("capacity:i", $em.facts.getInt("capacity:i") + 1);
+		
+		$em.logs("CAROUSEL-SINGLE-ALLOCATION:INCREMENTS-CAPACITY-CHECK(i:"+$em.facts.getInt("capacity:i")+")\n");
+    	$em.setPhase("single-allocation:initiation");
+    	update( $em );
+end
+
+rule "carousel-single-allocation:capacity-check"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:initiation", 
+        		!facts.getBoolean("onCapacityCheck"),
+	        		facts.getList("reclaimList").size() <= facts.getInt("reclaimList:i"),
+	        			facts.getInt("maximumCapacity") > 1,
+	        				round == 0
+    			)
+    then
+		$em.facts.put("onCapacityCheck", true);
+		$em.facts.put("reclaimList:i", 0);
+		$em.facts.put("capacity:i", $em.facts.getInt("capacity:i") + 1);
+		
+		$em.logs("CAROUSEL-SINGLE-ALLOCATION:CAPACITY-CHECK(i:"+$em.facts.getInt("capacity:i")+")\n");	
+    	$em.setPhase("single-allocation:initiation");
+    	update( $em );
+end
+
+rule "carousel-single-allocation:operability-initiation" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:initiation", 
+        		facts.getList("reclaimList").size() > facts.getInt("reclaimList:i"),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("reclaim:i", $em.facts.getListItemAt("reclaimList", $em.facts.getInt("reclaimList:i")));
+    	$em.logs("Reclaim allocation check at " + $em.facts.get("reclaim:i"));
+    	
+    	$em.setPhase("single-allocation:opearability-reclaim");
+    	$em = initiationOperability($em, mapper, reference);
+    	update( $em );
+end
+
+rule "carousel-single-allocation:inoperable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation", 
+        	phase == "single-allocation:opearability-reclaim", 
+    			facts.getNumeric("reclaiminoperation") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:inoperability!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "carousel-single-allocation:operable" 	
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:opearability-reclaim", 
+        		facts.getNumeric("reclaiminoperation") == 0,
+        				round == 0
+    			)
+    then
+    	$em = initiationAvailability($em, mapper, reference);
+    	$em.setPhase("single-allocation:availability-reclaim");
+    	update( $em );
+end
+
+rule "carousel-single-allocation:inavailable"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:availability-reclaim", 
+        		!(
+        			(facts.getNumeric("reclaiminavailable") == 0 
+        				&& !facts.getBoolean("onCapacityCheck")) 
+        					|| 
+        			(facts.getNumeric("reclaiminavailable") < facts.getInt("capacity:i") 
+        				&& facts.getBoolean("onCapacityCheck"))
+        		),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:inavailable!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "carousel-single-allocation:reassign-available" 
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:availability-reclaim", 
+        		(
+        			(facts.getNumeric("reclaiminavailable") == 0 
+        				&& !facts.getBoolean("onCapacityCheck")) 
+        					|| 
+        			(facts.getNumeric("reclaiminavailable") < facts.getInt("capacity:i") 
+        				&& facts.getBoolean("onCapacityCheck"))
+        		),
+        		round == 0
+    		)
+    then
+    	
+    	$em.logs("alocated on validity:fitness stage!!");
+    	reassignOperability($em, mapper, reference);
+    	
+    	$em.facts.put("return","ResourceAllocated");
+    	$em.setPhase("single-allocation:fitness");
+end
+
+rule "carousel-single-allocation:reaccomodates-available" 	
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-allocation:availability-reclaim", 
+        		(
+        			(facts.getNumeric("reclaiminavailable") == 0 
+        				&& !facts.getBoolean("onCapacityCheck")) 
+        					|| 
+        			(facts.getNumeric("reclaiminavailable") < facts.getInt("capacity:i") 
+        				&& facts.getBoolean("onCapacityCheck"))
+        		), 
+        		facts.getBoolean("onfitnessAssignation"),
+        			round == 0
+    		)
+    then
+    	reaccomodatesOperability($em, mapper, reference);
+end
+

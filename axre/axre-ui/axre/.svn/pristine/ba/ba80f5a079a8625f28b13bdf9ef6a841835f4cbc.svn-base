@@ -1,0 +1,101 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.model.EphemeralFact 
+import com.concept.ruleengine.model.EphemeralFactType
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.dt.model.DecisionTable
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.StringUtil.CustomRegex
+
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+function EphemeralMantle initiationValidity(EphemeralMantle em, 
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("isWingsConstraited", isWingConstraints(
+			em.facts.get("_standCode"), em.facts.get("_aircraftType"), mapper, reference));
+			
+	return em;
+}
+
+function boolean isWingConstraints(Object stand, Object aircraftType, 
+	QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_sd","retrieve_standmaxcapacity");
+	mapper.parameterized("STAND_CODE", stand);
+	Object standCapacity = reference.get(mapper.getQuery());
+	
+	if( standCapacity == null ) return false;
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", aircraftType );
+	double aircraftWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	mapper.parameterized("IATA_SUBTYPE_CODE", standCapacity );
+	double standWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	return standWingSpan >= aircraftWingSpan;
+}
+
+rule "adhoc-alocation-validity" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "adhoc:alocation-validity",
+        			round == 0
+    			)
+    then
+    	$em = initiationValidity($em, mapper, reference);
+    	$em.logs("initiation-calibration:update-self-pair done!, adhoc:allocation:determination begin!!");
+    	$em.setPhase("adhoc-alocation:validity");
+    	update( $em );
+end
+
+rule "adhoc-alocation-validity:capacity-conflict" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "adhoc-alocation:validity", 
+        		!facts.getBoolean("isWingsConstraited"),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("return","CapacityConflict");
+    	$em.logs("Capacity Conflicts, Allocation failed!");
+end
+
+rule "adhoc-alocation-validity:capacity-fitness" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "adhoc-alocation:validity", 
+        		facts.getBoolean("isWingsConstraited"),
+        			round == 0
+    			)
+    then
+    	$em.logs("Allocated with towing!");
+end
+
+rule "adhoc-alocation-validity:capacity-fitness-with-towing" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "adhoc-alocation:validity", 
+        		facts.getBoolean("isWingsConstraited"),
+        			facts.get("_spSeq") == "1",
+        				round == 0
+    			)
+    then
+    	mapper.relace("_sqlmap_sd","update_aircraft_stand_parking_op");
+		mapper.parameterized("AIRCRAFT_VISIT_SEQ", $em.facts.get("_visitSeq"));
+		mapper.parameterized("AIRCRAFT_SP_SEQ",  $em.facts.get("_spSeq"));
+		reference.modify(mapper.getQuery());
+    	$em.logs("Allocated with towing!");
+end

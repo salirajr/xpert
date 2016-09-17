@@ -1,0 +1,125 @@
+//created on: Aug 29, 2015
+package assets.axre.rule.apii.cupl
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+function EphemeralMantle initiation(EphemeralMantle em, DecisionTable decisionTable){
+	em.facts.remap("in2", "_type");
+	em.facts.put("maximumCapacity", 2);
+	em.facts.put("timeBuffer", 15);
+	
+	decisionTable.relace("_xdt_op_nonservicetype");
+	em.facts.putList("nonServicetypeList", StringUtil.toList(decisionTable.laced().get("LISTVALUE"), 
+			StringUtil.CustomRegex.COMMA));
+	
+	return em;
+}
+
+function EphemeralMantle initiationBulkAllocation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	String eta = DateUtil.toString(
+    		StringUtil.toTimestamp(em.facts.get("in0"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss");
+		
+	em.facts.put("_inEtd", eta);
+	em.facts.remap("in4", "_inSessionId");
+	
+	mapper.relace("_sqlmap_copl","count_bulk_rmsplanning");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("SESSIONID",em.facts.get("_inSessionId") );
+	em.facts.put("bulksize", reference.getInt(mapper.getQuery()));
+	
+	mapper.relace("_sqlmap_copl","extract_bulk_rmsplanning_initial_rmskey");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("SESSIONID",em.facts.get("_inSessionId") );
+	em.facts.put("_rmsKey", reference.getInt(mapper.getQuery()));
+	
+	em.facts.put("bulkoffset", 0);
+	em.facts.put("bulklimit", 10);
+	
+	
+	return em;
+}
+
+rule "initiation-calibration:initiated-phase"
+    when
+        $em: EphemeralMantle(operationName == "carousel-planning",
+        	phase == "0000000", 
+        		round == 0
+    			)
+    then
+    	$em = initiation($em, decisionTable);
+    	$em.setPhase("initiation-calibration:input-validity");
+    	update( $em );
+end
+
+/* Note from AION,
+ * A: Bulk Processes/Manual 
+ * B: Move button / drag and drop / tow flight 
+ */
+rule "bulk-allocation:determination"
+    when
+        $em: EphemeralMantle(operationName == "carousel-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") == "A", 
+        			!CustomUtil.isNullOrBlank(facts.get("in0")),
+        			!CustomUtil.isNullOrBlank(facts.get("in4"))
+    			)
+    then
+    	$em.facts.put("capacity:i", 1);
+		$em.facts.put("onfitnessAssignation", true);
+		$em.facts.put("onCapacityCheck", false);
+    
+    	$em.setPhase("bulk-allocation");
+    	$em = initiationBulkAllocation($em, mapper, reference);
+    	update( $em );
+end
+
+rule "single-validation:determination"
+    when
+        $em: EphemeralMantle(operationName == "carousel-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") == "B", 
+        			!CustomUtil.isNullOrBlank(facts.get("in1")),
+        			!CustomUtil.isNullOrBlank(facts.get("in3"))
+    			)
+    then
+    	$em.setPhase("single-validation");
+
+		$em.facts.remap("in1", "_reclaimCode");
+    	$em.facts.remap("in3", "_rmsKey");
+    	update( $em );
+    	
+end
+
+rule "single-allocation:determination"
+    when
+        $em: EphemeralMantle(operationName == "carousel-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") == "C", 
+        			!CustomUtil.isNullOrBlank(facts.get("in3"))
+    			)
+    then
+    	$em.facts.remap("in3", "_rmsKey");
+    	$em.facts.put("capacity:i", 1);
+    	$em.facts.put("onfitnessAssignation", true);
+    	$em.facts.put("onCapacityCheck", false);
+    	
+    	$em.setPhase("single-allocation");
+    	update( $em );
+end
+

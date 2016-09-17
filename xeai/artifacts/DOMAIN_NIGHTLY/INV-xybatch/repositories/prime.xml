@@ -1,0 +1,22 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="defaultLauncher"
+		class="com.xybase.ax.eai.xybatch.launcherbinder.LauncherBinderImpl">
+		<property name="baseCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.larik.Larik"
+				factory-bean="contextLarikDao" factory-method="get">
+				<constructor-arg value="IMBATCH, BDPF" />
+			</bean>
+		</property>
+		<property name="lCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="contextLookupDao" factory-method="get">
+				<constructor-arg value="IMBATCH, BDPF" />
+			</bean>
+		</property>
+	</bean>
+
+</beans>

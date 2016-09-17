@@ -1,0 +1,59 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle 
+import com.concept.ruleengine.model.EphemeralFactType
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper 
+
+import java.util.List
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+
+function void updateItSelf(EphemeralMantle em, 
+		ReferenceDAO reference, 
+				QueryMapper mapper) {
+						
+	mapper.relace("_sqlmap_sd","retrieve_self_pairs");
+	List list = reference.getList(mapper.getQuery());
+
+	for (Object visitSequence : list) {
+		Object maxStandParkingSeq = getMaxStandParkingSeq(visitSequence, reference, mapper);
+		updateSelfPair(visitSequence, maxStandParkingSeq, reference, mapper);
+	}
+}
+
+function Object getMaxStandParkingSeq(Object visitSequence,
+		ReferenceDAO reference, 
+				QueryMapper mapper){
+	mapper.relace("_sqlmap_sd","retrieve_max_standparkingseq");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", visitSequence );
+	return reference.get(mapper.getQuery());
+}
+
+function void updateSelfPair(Object visitSequence, Object maxStandParkingSeq,
+		ReferenceDAO reference, 
+				QueryMapper mapper){
+	mapper.relace("_sqlmap_sd","update_itself");
+    mapper.parameterized("AIRCRAFT_VISIT_SEQ", visitSequence );
+    mapper.parameterized("AIRCRAFT_SP_SEQ", maxStandParkingSeq);
+    reference.modify(mapper.getQuery());			
+	
+}
+
+rule "update-itself" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:itself", 
+        			round == 0
+    			)
+    then
+    	updateItSelf($em, reference, mapper);
+    	$em.setPhase("calibration:prime-logs");
+    	$em.setRound(2);
+    	update( $em );
+end
+

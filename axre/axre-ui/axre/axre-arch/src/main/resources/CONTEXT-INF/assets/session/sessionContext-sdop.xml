@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<!-- Initialization for data source -->
+	<bean id="sdopSession" class="com.concept.ruleengine.session.KnowledgeSessionImpl">
+		<property name="lsDrools" ref="sdoplocationFile" />
+		<property name="reference" ref="rmsReference" />
+		<property name="mapper" ref="xlsQueryMapper" />
+		<property name="decisionTable" ref="xlsDecisionTable" />
+	</bean>
+
+	<bean id="sdoplocationFile" class="java.util.ArrayList">
+		<constructor-arg>
+			<list>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd__prime.drl</value>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd_input_validity.drl</value>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd_update_itself.drl</value>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd_allocation_validity.drl</value>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd_allocation_validity_fitness.drl</value>
+				<value>/assets/axre/apii/rule/sdop/_xrasset_sd_adhoc_allocation_validity.drl</value>
+			</list>
+		</constructor-arg>
+	</bean>
+</beans>

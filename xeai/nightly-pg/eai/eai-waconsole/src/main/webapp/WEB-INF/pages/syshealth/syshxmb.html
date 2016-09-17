@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/chosen/chosen.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/chosen/chosen.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/system_style.css"
+	th:href="@{/ui/css/system_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">SYSTEM TRANSACTION HEALTH
+		MONITORS</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="btn-refresh">
+			<i class="fa fa-refresh"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="ClearQuery" id="clear-query">
+			<i class="fa fa-close"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default">
+			<div class="panel-heading"></div>
+			<div class="panel-body">
+
+				<div class="col-lg-2">
+					<h4>Queue Processing</h4>
+					<br />
+					<div>
+
+						<div>
+							<span>FMMxpert</span> <small class="pull-right">20</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 85%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>RMSxpert</span> <small class="pull-right">120</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 50%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>AMSxpert</span> <small class="pull-right">70</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 40%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>CMSxpert</span> <small class="pull-right">50</small>
+						</div>
+
+						<div class="progress progress-small">
+							<div style="width: 20%;" class="progress-bar progress-bar-danger"></div>
+						</div>
+						<div>
+							<span>FIDSxpert</span> <small class="pull-right">1120</small>
+						</div>
+
+						<div class="progress progress-small">
+							<div style="width: 20%;" class="progress-bar progress-bar-danger"></div>
+						</div>
+					</div>
+
+				</div>
+				<div class="col-lg-6 b-l">
+					<h4>Real-time Processing Fitness</h4>
+					<br />
+					<canvas id="radarChart"></canvas>
+					<small class="pull-right">Last update on 17-12-2015
+						00:40:00</small>
+				</div>
+				<div class="col-lg-4 b-l">
+					<h4>Current Processing State</h4>
+					<br />
+					<div class="table-responsive">
+						<table class="table table-striped">
+							<thead>
+								<tr>
+									<th rowspan="2" style="vertical-align: middle !important;">Systems</th>
+									<th colspan="4" style="text-align: center !important;">Messages
+										Counters</th>
+								</tr>
+								<tr>
+									<th style="text-align: center !important;">Hits</th>
+									<th style="text-align: center !important;">Processed</th>
+									<th style="text-align: center !important;">Invalid</th>
+									<th style="text-align: center !important;">Failed</th>
+
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>FMMxpert</td>
+									<td style="text-align: center !important;">1010</td>
+									<td style="text-align: center !important;">85%</td>
+									<td style="text-align: center !important;">10%</td>
+									<td style="text-align: center !important;">5%</td>
+								</tr>
+								<tr>
+									<td><small>RMSxpert</small></td>
+									<td style="text-align: center !important;">939</td>
+									<td style="text-align: center !important;">90%</td>
+									<td style="text-align: center !important;">5%</td>
+									<td style="text-align: center !important;">5%</td>
+								</tr>
+								<tr>
+									<td><small>AMSxpert</small></td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">80%</td>
+									<td style="text-align: center !important;">7%</td>
+									<td style="text-align: center !important;">13%</td>
+								</tr>
+								<tr>
+									<td><small>IICSxpert</small></td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">80%</td>
+									<td style="text-align: center !important;">7%</td>
+									<td style="text-align: center !important;">13%</td>
+								</tr>
+								<tr>
+									<td><small>CMSxpert</small></td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">60%</td>
+									<td style="text-align: center !important;">20%</td>
+									<td style="text-align: center !important;">20%</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading"></div>
+			<div class="panel-body">
+				<div class="col-lg-8 b-r">
+					<h4>Processing Fitness Flot of FMMxpert</h4>
+					<br />
+					<div class="flot-chart">
+						<div class="flot-chart-content" id="flot-line-chart-multi"></div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<h4>Processing Fitness Time-sequence of FMMxpert</h4>
+					<br />
+					<div class="table-responsive">
+						<table class="table table-striped">
+							<thead>
+								<tr>
+									<th style="text-align: center !important;">Time Flot</th>
+									<th style="text-align: center !important;">Hits</th>
+									<th style="text-align: center !important;">Processed</th>
+									<th style="text-align: center !important;">Invalid</th>
+									<th style="text-align: center !important;">Failed</th>
+									<th style="text-align: center !important;">Queued</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td style="text-align: center !important;"><small>17-12-2015</small> 00:00:00</td>
+									<td style="text-align: center !important;">1010</td>
+									<td style="text-align: center !important;">85</td>
+									<td style="text-align: center !important;">10</td>
+									<td style="text-align: center !important;">5</td>
+									<td style="text-align: center !important;">185</td>
+								</tr>
+								<tr>
+									<td style="text-align: center !important;"><small>17-12-2015</small> 00:10:00</td>
+									<td style="text-align: center !important;">939</td>
+									<td style="text-align: center !important;">90</td>
+									<td style="text-align: center !important;">5</td>
+									<td style="text-align: center !important;">5</td>
+									<td style="text-align: center !important;">4</td>
+								</tr>
+								<tr>
+									<td style="text-align: center !important;"><small>17-12-2015</small> 00:20:00</td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">80</td>
+									<td style="text-align: center !important;">7</td>
+									<td style="text-align: center !important;">13</td>
+									<td style="text-align: center !important;">5</td>
+								</tr>
+								<tr>
+									<td style="text-align: center !important;"><small>17-12-2015</small> 00:30:00</td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">80</td>
+									<td style="text-align: center !important;">7</td>
+									<td style="text-align: center !important;">13</td>
+									<td style="text-align: center !important;">3</td>
+								</tr>
+								<tr>
+									<td style="text-align: center !important;"><small>17-12-2015</small> 00:40:00</td>
+									<td style="text-align: center !important;">1000</td>
+									<td style="text-align: center !important;">60</td>
+									<td style="text-align: center !important;">20</td>
+									<td style="text-align: center !important;">20</td>
+									<td style="text-align: center !important;">160</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+
+		<!-- Flot -->
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js}"></script>
+
+		<!-- Custom and plugin javascript -->
+		<script src="../../ui/ui-bootstrap/js/inspinia.js"
+			th:src="@{/ui/ui-bootstrap/js/inspinia.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/pace/pace.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/pace/pace.min.js}"></script>
+
+		<!-- ChartJS-->
+		<script src="../../ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js}"></script>
+
+		<!-- Flot -->
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js}"></script>
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.time.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.time.js}"></script>
+
+		<!-- Chosen -->
+		<script src="../../ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js}"></script>
+
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/syshealthxmb_script.js"
+			th:src="@{/ui/js/syshealthxmb_script.js}"></script>
+	</div>
+</body>
+
+</html>

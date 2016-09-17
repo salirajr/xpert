@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head layout:fragment="def-head">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Airport | Xpert</title>
+
+<link href="../../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+</head>
+
+<body class="top-navigation">
+	<div layout:fragment="pre-js"></div>
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div class="row border-bottom white-bg"
+				layout:fragment="def-navigation">
+				<nav class="navbar navbar-static-top" role="navigation">
+					<div class="navbar-header">
+						<button aria-controls="navbar" aria-expanded="false"
+							data-target="#navbar" data-toggle="collapse"
+							class="navbar-toggle collapsed" type="button">
+							<i class="fa fa-reorder"></i>
+						</button>
+						<a href="#" class="navbar-brand">Airport | Xpert</a>
+					</div>
+					<div class="navbar-collapse collapse" id="navbar">
+						<ul class="nav navbar-nav">
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									AXRE <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/home.htm}">Definition</a></li>
+									<li><a th:href="@{/asset_fabrics.htm}">Asset Fabrics</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									References <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/reference/rms/calibrate.htm}">RMS
+											Reference</a></li>
+									<li><a th:href="@{/reference/querymapper/calibrate.htm}">Query
+											Mapper</a></li>
+									<li><a th:href="@{/reference/dtsource/calibrate.htm}">Decision
+											Tables</a></li>
+									<li><a th:href="@{/reference/drools/calibrate.htm}">Drools</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Development <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a href="">How to?!</a></li>
+									<li><a th:href="@{/fabricates/home.htm}">Stateless
+											Knowledge-Session</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Logs <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a href="">Execution</a></li>
+									<li><a href="">Rule Versioning</a></li>
+								</ul></li>
+
+						</ul>
+						<ul class="nav navbar-top-links navbar-right">
+							<li><a href="login.html"> <i class="fa fa-sign-out"></i>
+									Log out
+							</a></li>
+						</ul>
+					</div>
+				</nav>
+			</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>AXRE [Airport Xpert Rule Engine]</h2>
+					<div layout:fragment="nav-tree">
+						<ol class="breadcrumb">
+							<li><a href="index.html">AXRE</a></li>
+							<li class="active"><strong>Rule Definition</strong></li>
+						</ol>
+					</div>
+				</div>
+				<div class="col-lg-2"></div>
+			</div>
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div layout:fragment="content">
+					<!-- HERE LIES CONTENT OF THE PAGE!! -->
+				</div>
+
+			</div>
+			<div class="footer">
+				<div layout:fragment="def-footer">
+					<small>Copyright &copy; 2014 XYBASE MSC Sdn. Bhd. rights
+						reserved.
+					</small>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- Mainly scripts -->
+	<script src="../../../ui/ui-bootstrap/js/jquery-2.1.1.js"
+		th:src="@{/ui/ui-bootstrap/js/jquery-2.1.1.js}"></script>
+	<script src="../../../ui/ui-bootstrap/js/bootstrap.min.js"
+		th:src="@{/ui/ui-bootstrap/js/bootstrap.min.js}"></script>
+	<script
+		src="../../../ui/ui-bootstrap/js/plugins/metisMenu/jquery.metisMenu.js"
+		th:src="@{/ui/ui-bootstrap/js/plugins/metisMenu/jquery.metisMenu.js}"></script>
+	<script
+		src="../../../ui/ui-bootstrap/js/plugins/slimscroll/jquery.slimscroll.min.js"
+		th:src="@{/ui/ui-bootstrap/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+
+	<!-- Custom and plugin javascript -->
+	<script src="../../../ui/ui-bootstrap/js/inspinia.js"
+		th:src="@{/ui/ui-bootstrap/js/inspinia.js}"></script>
+	<script src="../../../ui/ui-bootstrap/js/plugins/pace/pace.min.js"
+		th:src="@{/ui/ui-bootstrap/js/plugins/pace/pace.min.js}"></script>
+
+	<div layout:fragment="add-js"></div>
+
+</body>
+
+</html>

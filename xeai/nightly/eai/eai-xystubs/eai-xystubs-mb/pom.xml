@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.xybase.ax.eai</groupId>
+		<artifactId>eai-xystubs</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>eai-xystubs-mb</artifactId>
+	<packaging>ejb</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>javax.ejb</groupId>
+			<artifactId>ejb</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.xybase.xmb</groupId>
+			<artifactId>xmb</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.as</groupId>
+			<artifactId>jboss-as-ejb-client-bom</artifactId>
+			<version>7.1.0.Final</version>
+			<type>pom</type>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ejb-plugin</artifactId>
+				<configuration>
+					<ejbVersion>2.1</ejbVersion>
+				</configuration>
+			</plugin>
+		</plugins>
+		<finalName>EaiXystubsMb</finalName>
+	</build>
+</project>

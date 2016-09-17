@@ -1,0 +1,250 @@
+package com.concept.ruleengine.reference.mapper;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import com.concept.ruleengine.archcomp.ConfigComponent;
+import com.concept.ruleengine.archcomp.ConstantComponent;
+import com.concept.ruleengine.archcomp.exception.ApplicationRuntimeException;
+import com.concept.ruleengine.common.util.StringUtil;
+
+public class QueryMapperXlsImpl implements QueryMapper {
+
+	private static Logger logger = LogManager
+			.getLogger(QueryMapperXlsImpl.class);
+
+	private Workbook workbook;
+	private Sheet sheet;
+	private Row row;
+
+	private HashMap<String, String> queryParameters;
+	private List<String> parameterKey;
+	private List<String> tableKey;
+
+	private String baseQuery, query, mapName, queryName;
+
+	private int xPointer, yPointer, actPivot;
+
+	// JS, add after configurable logic imply!
+	private String actPivotValue, pivotValue, temp, tempContainer;
+
+	// Temporary variable, defined to keep the code simpler and controlled
+	// allocated variable, uses over by over again.
+	private int nRows, i, nFit;
+	private boolean isOn;
+
+	private String suffix = ConstantComponent.SUFFIX_XLS;
+	private String baseLocation = ConstantComponent.DOMAIN_LOCATION_QUERY_XLS;
+
+	public QueryMapperXlsImpl() {
+		super();
+	}
+
+	public QueryMapperXlsImpl(String mapNames, String queryNames) {
+		super();
+		initiate(mapNames, queryNames);
+	}
+
+	private void initiate(String mapNames, String queryNames) {
+		mapName = mapNames;
+		queryName = queryNames;
+		// Begin of Rows Screening!
+		xPointer = Integer.valueOf(ConfigComponent.CFG_QM
+				.getString("qm.xls.activation.pivot.x"));
+		actPivot = xPointer;
+		yPointer = Integer.valueOf(ConfigComponent.CFG_QM
+				.getString("qm.xls.activation.pivot.y"));
+
+		// .xls File Name
+		workbook = mantledFIS(mapNames);
+
+		// Sheet Name, define on querymapper.properties
+		sheet = workbook.getSheet(ConfigComponent.CFG_QM
+				.getString("qm.xls.sheet"));
+
+		tableKey = StringUtil.toList(
+				ConfigComponent.CFG_QM.getString("qm.xls.sheet.header.plot"),
+				StringUtil.CustomRegex.COMMA);
+
+		i = 0;
+		isOn = true;
+		/*
+		 * JS, Checking if the header definition is unique!
+		 */
+		while (isOn && i < tableKey.size()) {
+			temp = tableKey.get(i);
+			if (Collections.frequency(tableKey, temp) > 1)
+				isOn = false;
+			i++;
+		}
+		if (!isOn)
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Exception, Duplicated Query Mapper Template Definition[Reference: "
+							+ tableKey + "]");
+
+		pivotValue = sheet.getRow(yPointer).getCell(xPointer).toString();
+		temp = ConfigComponent.CFG_QM.getString("qm.xls.activation.head");
+
+		/*
+		 * JS, Checking if the is activation flag on the row definition and the
+		 * .xls sheet
+		 */
+		if (!pivotValue.equals(temp))
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Exception, Invalid Query Mapper Template[Expecting Activation Header "
+							+ temp + " instead of " + pivotValue + "]");
+
+		xPointer = Integer.valueOf(ConfigComponent.CFG_QM
+				.getString("qm.xls.sheet.header.pivot.x"));
+		yPointer = Integer.valueOf(ConfigComponent.CFG_QM
+				.getString("qm.xls.sheet.header.pivot.y"));
+		actPivotValue = ConfigComponent.CFG_QM
+				.getString("qm.xls.activation.pivot.value");
+
+		i = 0;
+		nFit = 0;
+		tempContainer = "";
+
+		/*
+		 * JS, Checking if the header definition is fit with the screening .xls
+		 * scheme!
+		 */
+		while (i < tableKey.size()) {
+			temp = sheet.getRow(yPointer).getCell(xPointer + i).toString();
+			if (tableKey.contains(temp.trim()))
+				nFit++;
+			i++;
+			tempContainer += temp + " ";
+		}
+
+		if (nFit != tableKey.size())
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Exception, Invalid Query Mapper Template[Expecting Header "
+							+ tableKey.toString()
+							+ " instead of ["
+							+ tempContainer.trim().replaceAll(
+									StringUtil.CustomRegex.WHITESPACE, ", ")
+							+ "]]");
+
+		nRows = sheet.getPhysicalNumberOfRows();
+
+		yPointer++;
+
+		/*
+		 * JS, Screening Process, Logic is fixed by the definition, 1st Cell:
+		 * Key, 2nd Cell: Parameters, 3rd Cell: Query!
+		 */
+		while (yPointer < nRows
+		// Noticed this as Premiere Fact to end the screening process!
+				&& (sheet.getRow(yPointer) != null && sheet.getRow(yPointer)
+						.getPhysicalNumberOfCells() > 1)
+				// Screen Miner of selection rows
+				&& (
+				// Condition of Skipped Row
+				(!sheet.getRow(yPointer).getCell(actPivot).toString().trim()
+						.equals(actPivotValue.trim()))
+				// Condition of Fit Row
+				|| (!sheet.getRow(yPointer).getCell(xPointer).toString().trim()
+						.equals(queryNames.trim())))
+				// Read this:
+				// http://logicallylogic.weebly.com/thelife/imperative-and-short-circuit-evaluation
+				&& ++yPointer < nRows)
+			;
+
+		// Final Act of Map Extraction!
+		if (sheet.getRow(yPointer).getCell(xPointer) == null)
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Map Query: No Query Exception: (name:"
+							+ queryNames + ") Check your " + mapName
+							+ ".xls file");
+
+		row = sheet.getRow(yPointer);
+		temp = row.getCell(++xPointer).toString().trim();
+
+		queryParameters = new HashMap<String, String>();
+		parameterKey = StringUtil.toList(temp, StringUtil.CustomRegex.COMMA);
+
+		baseQuery = row.getCell(++xPointer).toString();
+		query = baseQuery;
+
+	}
+
+	public QueryMapperXlsImpl relace() {
+		queryParameters = new HashMap<String, String>();
+		query = baseQuery;
+		if (logger.isDebugEnabled())
+			logger.debug("Retrieved Query Mapper :" + mapName + ", named:"
+					+ queryName);
+		return this;
+	}
+
+	public QueryMapperXlsImpl parameterized(String parameter, Object value) {
+		if (!parameterKey.contains(parameter))
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Map Query Exception: No parameters["
+							+ parameter + "] Description on " + queryName
+							+ " of " + mapName);
+		queryParameters.put(parameter, value.toString());
+		query = query.replaceAll("\\$" + parameter + "\\$", value.toString());
+		return this;
+	}
+
+	public String getQuery() {
+		if (queryParameters.size() != parameterKey.size())
+			throw new ApplicationRuntimeException("XYBASE Airport Map "
+					+ mapName + " Query[" + queryName
+					+ "] Exception: Rendered Failed[ Expecting: "
+					+ parameterKey.size() + ", Actual: "
+					+ queryParameters.size() + "]");
+		String result = query
+				.replaceAll(StringUtil.CustomRegex.WHITESPACE, " ");
+		if (logger.isDebugEnabled())
+			logger.debug("Retrieved Query Mapper :" + mapName + ", named:"
+					+ queryName + ", Query: " + result);
+		return result;
+	}
+
+	private Workbook mantledFIS(String mapName) {
+		FileInputStream fis;
+		String prefxPath = ConstantComponent.BASEPTH;
+		if (ConstantComponent.BASEPTH == null)
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Data Source Exception, [System Properties: "
+							+ ConstantComponent.SYSPROBASEPTH
+							+ " doesnot exist!! ]");
+
+		try {
+			fis = new FileInputStream(prefxPath + baseLocation + mapName
+					+ suffix);
+			Workbook result = new HSSFWorkbook(fis);
+			// Shut the stream here!!, keep the file accessible by others, by
+			// keep access time low, even this only read operation!!!
+			fis.close();
+			return result;
+		} catch (FileNotFoundException fnfe) {
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Exception, File Not Found Exception[format: "
+							+ prefxPath + baseLocation + mapName + suffix + "]");
+		} catch (IOException e) {
+			throw new ApplicationRuntimeException(
+					"XYBASE Airport Rule Engine Exception, IO Exception[format: "
+							+ prefxPath + baseLocation + mapName + suffix + "]");
+		}
+	}
+
+	public QueryMapper relace(String mapNames, String queryNames) {
+		initiate(mapNames, queryNames);
+		return this;
+	}
+}

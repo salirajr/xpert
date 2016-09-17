@@ -1,0 +1,213 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.coop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle initAllocationValidation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference, 
+			DecisionTable decisionTable){
+	
+	mapper.relace("_sqlmap_co","retrieve_vr_of_contact_open_time_co");
+	em.facts.put("contactOpentime", reference.getNumeric(mapper.getQuery()));
+	
+	int leapMinute = (int) Math.floor(em.facts.getNumeric("contactOpentime"));
+	
+	em.facts.put(
+		"closetime", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(
+					StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss"), 
+						leapMinute), "yyyy-MM-dd HH:mm:ss"));
+						
+	mapper.relace("_sqlmap_co","retrieve_ls_reclaims_terminal");
+	mapper.parameterized("TERMINAL_CODE", em.facts.get("_terminalCode") );
+	em.facts.putList("reclaimList", reference.getList(mapper.getQuery()));
+	em.facts.put("reclaimList:i",0);
+	
+	return em;
+}
+
+function EphemeralMantle initiationAvailability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for availability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictavailability");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey") );
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("reclaim:i") );
+	mapper.parameterized("CAROUSEL_OPEN_TIME", em.facts.get("_eta") );
+	mapper.parameterized("CAROUSEL_CLOSE_TIME", em.facts.get("closetime") );
+	
+	em.facts.put("reclaiminavailable", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+function EphemeralMantle initiationOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for operability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictoperation");
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("reclaim:i") ); 
+	mapper.parameterized("INOP_START_TIME", em.facts.get("_eta") );
+	mapper.parameterized("INOP_END_TIME", em.facts.get("closetime") );
+	
+	em.facts.put("reclaiminoperation", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+function void operableAssignment(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_co","delete_flco_by_rmskey");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_co","insert_flight_coop");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	mapper.parameterized("CAROUSEL_CODE",  em.facts.get("reclaim:i"));
+	mapper.parameterized("CAROUSEL_OPEN_TIME",  em.facts.get("_eta"));
+	mapper.parameterized("CAROUSEL_CLOSE_TIME",  em.facts.get("closetime"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_co","update_status_flco_by_rmskey");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	em.logs("add+modify tuple FLIGHT CAROUSEL OP");
+	
+}
+
+rule "allocation-validity:initiation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="allocation-validity", 
+        		round == 0
+    			)
+    then
+    	$em = initAllocationValidation($em, mapper, reference, decisionTable);
+		$em.logs("allocation-validity initiation!!");
+		$em.setPhase("alocation-validity:initiation");
+		update( $em );
+end
+
+rule "alocation-validity:increments" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:increments", 
+        		round == 0
+    		)
+    then
+    	$em.setPhase("alocation-validity:initiation");
+    	$em.facts.put("reclaimList:i", $em.facts.getInt("reclaimList:i") + 1);
+    	update( $em );
+end
+
+rule "alocation-validity:ends" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:initiation", 
+        		facts.getList("reclaimList").size() <= facts.getInt("reclaimList:i"),
+        			round == 0
+    			)
+    then
+    	$em.logs("alocation-validity:ends with no allocation!!");
+    	$em.setPhase("alocation-validity:ends");
+end
+
+rule "alocation-validity:availability-reclaim" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:initiation", 
+        		facts.getList("reclaimList").size() > facts.getInt("reclaimList:i"),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("reclaim:i", $em.facts.getListItemAt("reclaimList", $em.facts.getInt("reclaimList:i")));
+    	$em.logs("Reclaim allocation check at " + $em.facts.get("reclaim:i"));
+    	$em = initiationAvailability($em, mapper, reference);
+    	$em.setPhase("alocation-validity:availability-reclaim");
+    	update( $em );
+end
+
+rule "alocation-validity:available" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:availability-reclaim", 
+        		facts.getNumeric("reclaiminavailable") == 0,
+        			round == 0
+    			)
+    then
+    	$em.setPhase("alocation-validity:opearability-reclaim");
+    	$em = initiationOperability($em, mapper, reference);
+    	update( $em );
+end
+
+rule "alocation-validity:inavailable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:availability-reclaim", 
+        		facts.getNumeric("reclaiminavailable") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("alocation-validity:inavailable!!, reconciliated with next possibility!"); 
+		$em.setPhase("alocation-validity:increments");
+		update( $em );
+end
+
+rule "alocation-validity:operable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:opearability-reclaim", 
+        		facts.getNumeric("reclaiminoperation") == 0,
+        			round == 0
+    			)
+    then
+    	$em.setPhase("alocated on validity:operability stage");
+    	$em.logs("alocated on validity:operability stage!!");
+    	$em.facts.put("return","ResourceAllocated");
+end
+
+rule "alocation-validity-operable:non-adhoc" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:opearability-reclaim", 
+        		facts.getNumeric("reclaiminoperation") == 0, 
+        			facts.get("_type") in ("A","D"),
+        			round == 0
+    			)
+    then
+    	operableAssignment($em, mapper, reference);
+    	$em.setPhase("alocation-validity-operable:non-adhoc");
+end
+
+rule "alocation-validity:inoperable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "alocation-validity:opearability-reclaim", 
+    			facts.getNumeric("reclaiminoperation") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("alocation-validity:inoperability!!, reconciliated with next possibility!"); 
+		$em.setPhase("alocation-validity:increments");
+		update( $em );
+end
+

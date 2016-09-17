@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.2.xsd ">
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/datasource.xml" />
+
+	<import resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/dao.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/domains.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/controlbus.xml" />
+
+	<!-- LOCAL DEFINITION -->
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/domains.xml" />
+
+	<import resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/bridge.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/receivers/adapters.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/receivers/gateways.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/flows/asynchronous.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xyhttp/flows/synchronous.xml" />
+
+</beans>

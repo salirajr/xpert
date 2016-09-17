@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Audit Error Logs</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+
+<link href="../../ui/ui-bootstrap/css/plugins/iCheck/custom.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/iCheck/custom.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/chosen/chosen.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/chosen/chosen.css}"
+	rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/events_style.css"
+	th:href="@{/ui/css/events_style.css}" rel="stylesheet"></link>
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+<!-- 	DatePicker -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/datapicker/datepicker3.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/datapicker/datepicker3.css}"
+	rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<span layout:fragment="page-title">TRANSACTION AUDIT ERROR LOG</span>
+	<div layout:fragment="page-control">
+
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="re-query">
+			<i class="fa fa-refresh"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="SearchQuery" id="search-dialog" data-target="#searchCriteria"
+			data-toggle="modal">
+			<i class="fa fa-search"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="ClearQuery" id="clear-query">
+			<i class="fa fa-close"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+
+		<div class="modal inmodal" id="searchCriteria" tabindex="-1"
+			role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content animated bounceInRight">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+						<h4 class="modal-title">CRITERIAS</h4>
+						<small class="font-bold">of Audit Log and Audit Error Log</small>
+					</div>
+					<div class="modal-body">
+						<form id="searchCriterias">
+							<div class="row">
+								<span class="col-sm-3">XEAI-ERROR-ID</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">eq.</span> <input type="text"
+											id="xeai-error-id" name="xeaiErrorId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">XEAI-ID</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">eq.</span> <input type="text"
+											id="xeai-id" name="xeaiId" placeholder="" th:value="${xeaiIdTemp}"
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">EVENT-NAME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<select class="chosen-select" multiple=""
+											data-placeholder="No Event selected" id="event-name" 
+											name="eventName">
+										</select>
+									</div>
+								</div>
+							</div>
+							<input type="hidden" th:value="${eventNameTemp}" id="eventNameTempId" />
+							<div class="row">
+								<span class="col-sm-3">AUDIT-TIME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b	">
+										<span class="input-group-addon"><i
+											class="fa fa-clock-o"></i></span> <input data-mask="99-99-9999"
+											id="audit-date-start" type="text" class="form-control"
+											placeholder="dd-mm-yyyy" name="timeStart" th:value="${dateStartTemp}" ></input> <input
+											data-mask="99:99" type="text" class="form-control"
+											placeholder="hh:m" id="audit-time-start" style="width: 60px;" th:value="${timeStartTemp}" ></input>
+										<span class="input-group-addon">to</span> <input
+											data-mask="99-99-9999" type="text" class="form-control"
+											placeholder="dd-mm-yyyy" name="timeEnd" id="audit-date-end"  th:value="${dateEndTemp}" ></input>
+										<input data-mask="99:99" type="text" class="form-control"
+											style="width: 60px;" id="audit-time-end" placeholder="hh:m" th:value="${timeEndTemp}" ></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">ENDPOINT</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											placeholder="" class="form-control" name="endpoint"
+											id="endpoint" ></input>
+									</div>
+								</div>
+							</div>
+
+							<div class="row">
+								<span class="col-sm-3">CAUSE</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span>
+										<textarea class="form-control" rows="4" placeholder=""
+											id="cause" name="cause"></textarea>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary"
+							id="searchWithCriteria">Search</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				Criterias: <span> <span class="label label-primary">TOP
+						{100} ROWS ORDER BY AUDIT TIME DESC </span>&nbsp;<span id="lbl-xeai-id"
+					class="label label-success"></span> <span id="lbl-event-name"
+					class="label label-success"></span> <span id="lbl-audit-type"
+					class="label label-success"></span><span id="lbl-audit-time"
+					class="label label-success"></span> <span id="lbl-endpoint"
+					class="label label-success"></span> <span id="lbl-cause"
+					class="label label-success"></span>
+				</span>
+
+			</div>
+			<div class="panel-body table-responsive">
+				<table id="audit-error-log" class="table table-striped table-bordered">
+					<thead>
+						<tr>
+							<th>XEAI-ERROR-ID</th>
+							<th>XEAI-ID</th>	
+							<th>EVENT NAME</th>
+							<th>AUDIT TIME</th>
+							<th>CAUSE</th>
+							<th>SEVERITY</th>
+							<th>ENDPOINT</th>
+						</tr>
+					</thead>
+					<tfoot>
+					
+					</tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/datapicker/bootstrap-datepicker.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/datapicker/bootstrap-datepicker.js}"></script>
+
+		<!-- iCheck -->
+		<script src="js/plugins/iCheck/icheck.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/iCheck/icheck.min.js}"></script>
+
+		<!-- Input Mask-->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/jasny/jasny-bootstrap.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jasny/jasny-bootstrap.min.js}"></script>
+
+		<!-- Chosen -->
+		<script src="../../ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js}"></script>
+
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/auditerrorlog_script.js"
+			th:src="@{/ui/js/auditerrorlog_script.js}"></script>
+	</div>
+</body>
+
+</html>

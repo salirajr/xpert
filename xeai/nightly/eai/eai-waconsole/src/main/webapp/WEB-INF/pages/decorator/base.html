@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title layout:fragment="page-title">airportxpert</title>
+
+<link href="../../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+
+<link href="../../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+</head>
+<body layout:fragment="absoulte-body"
+	class="top-navigation fixed-nav fixed-heading skin-2">
+	<div layout:fragment="pre-script-definition"></div>
+	<div id="wrapper" class="container-fluid">
+		<div class="row border-bottom">
+			<nav class="navbar navbar-fixed-top" id="main-top-nav"
+				role="navigation">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button data-target="#xy-navbar" data-toggle="collapse"
+							class="navbar-toggle collapsed" type="button">
+							<i class="fa fa-reorder"></i>
+						</button>
+						<a href="#" class="navbar-brand">airportxpert</a>
+					</div>
+					<div class="collapse navbar-collapse" id="xy-navbar">
+						<ul class="nav navbar-nav">
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown"> IMX
+									<span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/home.do}">Modules</a></li>
+									<li><a th:href="@{/errors/underconstruction_page.do}">Linkage</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Management <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/controlbus/home.do}">Control Bus</a></li>
+									<li><a th:href="@{/references/home.do}">References</a></li>
+									<li><a th:href="@{/events/home.do}">Events</a></li>
+									<li><a th:href="@{/fabrics/home.do}">Fabrics</a></li>
+									<li><a th:href="@{/syshealth/home.do}">Health Status</a></li>
+								</ul></li>
+
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Development <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/businessflow/home.do}">Business
+											Flow (EIP)</a></li>
+									<li><a th:href="@{/transform/home.do}">Transformer</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Mock <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<!-- <li><a th:href="@{/errors/underconstruction_page.do}">Message
+											Scenario</a></li> -->
+									<li><a th:href="@{/messagetool/home.do}">Messaging
+											Tools</a></li>
+									<li><a th:href="@{/messagetool/home.do}">Message
+											Version</a></li>
+									<li><a th:href="@{/messagetool/home.do}">Configuration</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									Logs <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a th:href="@{/auditlog/home.do}">Transactional
+											Logging</a></li>
+									<li><a th:href="@{/auditerrorlog/home.do}">Error Logs</a></li>
+									<li><a th:href="@{/references/home.do}">Auditing
+											Configuration</a></li>
+								</ul></li>
+							<li class="dropdown"><a aria-expanded="false" role="button"
+								href="#" class="dropdown-toggle" data-toggle="dropdown">
+									System <span class="caret"></span>
+							</a>
+								<ul role="menu" class="dropdown-menu">
+									<li><a
+										href="http://110.74.133.61:8081/axpert_web/admin/appsaction.do?action=getApps">Exit</a></li>
+								</ul></li>
+
+						</ul>
+					</div>
+					<div class="row wrapper border-bottom page-heading"
+						id="page-heading">
+						<div class="col-sm-6 col-xs-12" id="page-title">
+							<h2>
+								<span layout:fragment="page-title">ENTERPRISE APPLICATION
+									INTEGRATION</span>
+							</h2>
+						</div>
+						<div class="col-sm-6 col-xs-12" id="page-control">
+							<div layout:fragment="page-control"
+								class="btn-group btn-group-lg m-t-sm"></div>
+						</div>
+					</div>
+				</div>
+			</nav>
+		</div>
+
+		<div class="row wrapper-content animated fadeInRight">
+			<div layout:fragment="main-content">
+				<!-- HERE LIES CONTENT OF THE PAGE!! -->
+			</div>
+
+		</div>
+		<div layout:fragment="footer" class="footer fixed-full">
+			<div>
+				<small>Copyright &copy; 2014 XYBASE MSC Sdn. Bhd. All rights
+					reserved. </small>
+			</div>
+		</div>
+
+	</div>
+
+	<div layout:fragment="main-script-definition">
+		<!-- Mainly scripts -->
+		<script src="../../../ui/ui-bootstrap/js/jquery-2.1.1.js"
+			th:src="@{/ui/ui-bootstrap/js/jquery-2.1.1.js}"></script>
+		<script src="../../../ui/ui-bootstrap/js/bootstrap.min.js"
+			th:src="@{/ui/ui-bootstrap/js/bootstrap.min.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/metisMenu/jquery.metisMenu.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/metisMenu/jquery.metisMenu.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/slimscroll/jquery.slimscroll.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+
+		<script src="../../../ui/ui-bootstrap/js/plugins/toastr/toastr.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/toastr/toastr.min.js}"></script>
+
+		<script src="../../../ui/ext-js-lib/moment.js"
+			th:src="@{/ui/ext-js-lib/moment.js}"></script>
+
+		<script src="../../../ui/js/main.js" th:src="@{/ui/js/main.js}"></script>
+
+	</div>
+
+	<div layout:fragment="ext-script-definition"></div>
+
+	<div layout:fragment="final-script-definition">
+		<!-- Custom and plugin javascript -->
+		<script src="../../../ui/ui-bootstrap/js/inspinia.js"
+			th:src="@{/ui/ui-bootstrap/js/inspinia.js}"></script>
+		<script src="../../../ui/ui-bootstrap/js/plugins/pace/pace.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/pace/pace.min.js}"></script>
+		<script src="../../../ui/js/base.js" th:src="@{/ui/js/base.js}"></script>
+	</div>
+
+	<div layout:fragment="final-script-onstage"></div>
+</body>
+
+</html>

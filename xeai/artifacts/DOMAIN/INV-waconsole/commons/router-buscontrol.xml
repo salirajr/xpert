@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+http://www.springframework.org/schema/integration/xml"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml">
+
+	<int:chain input-channel="defaultChannelCommand">
+		<int:header-enricher>
+			<int:header name="XeaiCores" expression="payload.split('/\\*')[0]" />
+		</int:header-enricher>
+		<int:transformer method="intepret">
+			<bean
+				class="com.xybase.ax.eai.waconsole.appliance.control.ControlInterpreter">
+				<constructor-arg ref="owner" />
+			</bean>
+		</int:transformer>
+		<int-http:outbound-gateway
+			expected-response-type="java.lang.String"
+			url-expression="'http://' + @owner.get(headers['XeaiCores']).get('baseuri') + '/' + @owner.get(headers['XeaiCores']).get('alias') + '/' + 'default/controlbus/sync/httpReceiver.do'" />
+	</int:chain>
+
+</beans>

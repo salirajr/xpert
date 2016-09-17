@@ -1,0 +1,14 @@
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:urn="urn:ShakehandContractMock">
+  <soapenv:Header />
+  <soapenv:Body>
+    <ns1:ShakehandContractMockRequest xmlns:ns1="urn:ShakehandContractMock"
+	    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	    soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+      <OperationName>NONE</OperationName>
+      <TestKey>NULL</TestKey>
+      <TestValue>NULL</TestValue>
+    </ns1:ShakehandContractMockRequest>
+  </soapenv:Body>
+</soapenv:Envelope>

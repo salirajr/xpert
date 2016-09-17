@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:int-xml="http://www.springframework.org/schema/integration/xml">
+
+	<!-- DO NOT CHANGES THE NAME OF THE CHANNEL, WIRED TO ACTIVE EJB!, JAVA 
+		CODE LEVEL, #JS -->
+	<int:channel id="xmbChannelOut" />
+
+	<int:channel id="xmbWsChannelOut" />
+	<int:service-activator id="saXmbWsChannelOut"
+		input-channel="xMBWsReceiver">
+		<bean id="xmbChannelOut" class="com.xybase.ax.eai.archcomp.xmb.receiver.XmbWsReceiver">
+			<property name="auditLogDao" ref="auditLogDao" />
+			<property name="defaultChannelOut" ref="xmbChannelOut" />
+			<property name="auditLogConfig">
+				<bean
+					class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+					factory-bean="auditLogConfigDao" factory-method="get">
+					<constructor-arg value="EjbXmbSubDataPool" index="0" />
+					<constructor-arg value="2000" index="1" />
+					<constructor-arg value="2" index="2" />
+				</bean>
+			</property>
+			<property name="xeaiSequence" ref="xeaiSequence" />
+		</bean>
+	</int:service-activator>
+
+	<int:channel id="xmbChannelLog" />
+	<int:outbound-channel-adapter method="audit"
+		ref="xmbAuditHandler" channel="xmbChannelLog">
+	</int:outbound-channel-adapter>
+
+	<bean id="xmbAuditHandler"
+		class="com.xybase.ax.eai.archcomp.handler.audit.DefaultAuditHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="extractor">
+			<bean
+				class="com.xybase.ax.eai.archcomp.transformer.extract.ObjectExtractor" />
+		</property>
+		<property name="converter">
+			<bean class="com.xybase.ax.eai.archcomp.xmb.util.XMBMessageUtil" />
+		</property>
+		<property name="auditLogConfig">
+			<bean factory-bean="auditLogConfigDao" factory-method="get"
+				class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+			</bean>
+		</property>
+	</bean>
+
+
+
+
+</beans>

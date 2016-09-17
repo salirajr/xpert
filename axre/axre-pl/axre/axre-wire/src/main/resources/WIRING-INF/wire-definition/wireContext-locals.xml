@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration-4.1.xsd
+    http://www.springframework.org/schema/integration/xml
+    http://www.springframework.org/schema/integration/xml/spring-integration-xml-4.1.xsd
+    http://www.springframework.org/schema/integration/ws 
+    http://www.springframework.org/schema/integration/ws/spring-integration-ws-4.1.xsd">
+
+
+	<int:channel id="ShakehandContractMockChannel-input" />
+
+	<int:channel id="EIservicesPort-input-coop" />
+	<int:channel id="EIservicesPort-input-cuop" />
+	<int:channel id="EIservicesPort-input-sdop" />
+
+	<int:channel id="EIservicesPort-input-copl" />
+	<int:channel id="EIservicesPort-input-cupl" />
+	<int:channel id="EIservicesPort-input-sdpl" />
+
+	<int:service-activator input-channel="ShakehandContractMockChannel-input"
+		ref="wireService-scm" method="injects" />
+
+	<int:service-activator input-channel="EIservicesPort-input-coop"
+		ref="wireService-coop" method="injects" />
+	<int:service-activator input-channel="EIservicesPort-input-cuop"
+		ref="wireService-cuop" method="injects" />
+	<int:service-activator input-channel="EIservicesPort-input-sdop"
+		ref="wireService-sdop" method="injects" />
+
+	<int:service-activator input-channel="EIservicesPort-input-copl"
+		ref="wireService-copl" method="injects" />
+	<int:service-activator input-channel="EIservicesPort-input-cupl"
+		ref="wireService-cupl" method="injects" />
+	<int:service-activator input-channel="EIservicesPort-input-sdpl"
+		ref="wireService-sdpl" method="injects" />
+
+</beans>

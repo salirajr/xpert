@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/decorator">
+<head layout:fragment="def-head">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Airport | Xpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/dropzone/basic.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dropzone/basic.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/dropzone/dropzone.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dropzone/dropzone.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<div layout:fragment="pre-js"></div>
+	<div layout:fragment="content">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content">
+						<strong>Lorem Ipsum</strong> is simply dummy text of the printing
+						and typesetting industry. Lorem Ipsum has been the industry's
+						standard dummy text ever since the 1500s, when an unknown printer
+						took a galley of type and scrambled it to make a type specimen
+						book. It has survived not only five centuries, but also the leap
+						into electronic typesetting, remaining essentially unchanged. It
+						was popularised in the 1960s with the release of Letraset sheets
+						containing Lorem Ipsum passages, and more recently with desktop
+						publishing software like Aldus PageMaker including versions of
+						Lorem Ipsum.
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-3">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Run-time Configuration</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<div class="pull-right">
+							<div class="btn-group btn-group-sm m-t-sm white-bg">
+								<button type="button" class="btn btn-primary btn-outline"
+									title="plus" id="plus">
+									<i class="fa fa-plus"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Upload" id="upload">
+									<i class="fa fa-upload"></i>
+								</button>
+							</div>
+						</div>
+						<div class="clearfix"></div>
+						<form action="../upload/wire/file" id="file-upload-form"
+							class="hide" method="POST">
+							<input type="text" id="base" name="base" value="/wire-definition"></input>
+							<input type="text" id="name" name="name"></input> <input
+								type="text" id="path" name="path"></input> <input type="file"
+								id="fileUpload" name="file"></input>
+						</form>
+						<table id="runtime-configuration"
+							class="table table-striped table-bordered table-hover dataTables-example">
+							<thead>
+								<tr>
+									<th>Configuration Files</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+
+						<form id="aflinkage" class="invisible"
+							th:action="@{/assetfabrics.htm}" action="../../assetfabrics.htm"
+							method="post">
+							<input type="text" id="base" name="base"></input> <input
+								type="text" id="file" name="file"></input><input type="text"
+								id="source" name="source" value="drool-references"></input>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-9">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<span id="title-text">Configuration File : <strong><span
+								id="file-lable" class="co-primary"></span></strong></span>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<div class="pull-right">
+							<div class="btn-group btn-group-sm m-t-sm white-bg">
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Save" id="locks">
+									<i id="lock-state" class="fa fa-unlock"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Save" id="save">
+									<i class="fa fa-save"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Rename" id="rename" data-toggle="modal"
+									data-target="#myModal4">
+									<i class="fa fa-wrench"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Download" id="download">
+									<i class="fa fa-download"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline"
+									title="Link" id="link">
+									<i class="fa fa-link"></i>
+								</button>
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Cancel" id="cancel">
+									<i class="fa fa-times"></i>
+								</button>
+
+								<button type="button" class="btn btn-primary btn-outline btn-sm"
+									title="Delete" id="delete">
+									<i class="fa fa-trash"></i>
+								</button>
+							</div>
+						</div>
+						<div class="clearfix"></div>
+						<div>
+							<pre id="main_editor"></pre>
+							<div class="modal inmodal" id="myModal4" tabindex="-1"
+								role="dialog" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content animated fadeIn">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal">
+												<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+											</button>
+											<h4 class="modal-title">File Managements</h4>
+											<small>File Upload, required Name changes to format
+												wireContext-*.xml</small>
+										</div>
+										<div class="modal-body">
+											<form method="get" class="form-horizontal">
+												<div class="form-group">
+													<label class="col-sm-3 control-label">Base Holder</label>
+
+													<div class="col-sm-9">
+														<p class="form-control-static">wiring</p>
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-sm-3 control-label">Path Location</label>
+
+													<div class="col-sm-9">
+														<p class="form-control-static">/</p>
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-sm-3 control-label">File Name</label>
+
+													<div class="col-sm-9">
+														<input type="text" class="form-control"></input>
+													</div>
+												</div>
+											</form>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-white"
+												data-dismiss="modal">Close</button>
+											<button type="button" class="btn btn-primary">Upload</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="add-js">
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+		<script src="../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/dropzone/dropzone.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dropzone/dropzone.js}"></script>
+
+		<script src="../../ui/js/rc_fabricates.js"
+			th:src="@{/ui/js/rc_fabricates.js}"></script>
+	</div>
+</body>
+
+</html>

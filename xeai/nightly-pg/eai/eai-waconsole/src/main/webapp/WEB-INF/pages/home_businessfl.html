@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<!-- <link href="../../../ui/css/events_style.css"
+	th:href="@{/ui/css/events_style.css}" rel="stylesheet"></link> -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<span layout:fragment="page-title">BUSINESS FLOW PATTERN</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default btn-outline"
+			title="Flow Pattern" id="act-flowpattern">
+			<i class="fa fa-gears"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="btn-refresh">
+			<i class="fa fa-times"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div layout:fragment="modal-container">
+			<div class="modal inmodal" id="mdl-act-component" aria-hidden="true">
+				<div class="modal-dialog" style="width: 60%;">
+					<div class="modal-content animated fadeIn">
+						<div class="modal-body imx-screen-adjustment">
+							<div class="row">
+								<button type="button" class="close" data-dismiss="modal">
+									<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+								</button>
+								<table id="tbl-flowlogic"
+									class="table table-striped table-bordered">
+									<thead>
+										<tr>
+											<th>NAME</th>
+											<th>CONTAINER FLOW</th>
+											<th>OWNER</th>
+										</tr>
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+							</div>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="modal inmodal" id="mdl-controlbus" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content animated fadeIn">
+						<div class="modal-body imx-screen-adjustment">
+							<div class="row">
+								<table id="tbl-control-action"
+									class="table table-striped table-bordered b-r b-l">
+									<thead>
+										<tr>
+											<th colspan="4" class="centered">BUS CONTROL</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<th>Component</th>
+											<td><input type="text" placeholder=""
+												id="if-selected-operand"
+												class="form-control
+												input-sm "
+												style="margin-top: 5px;"></input></td>
+											<th>Group</th>
+											<td><select id="if-selected-group"
+												class="form-control input-sm">
+													<option value="CUSTOM">CUSTOM</option>
+											</select></td>
+										</tr>
+										<tr>
+											<th>Cipher</th>
+											<td><select class="form-control input-sm"
+												id="if-selected-cipher">
+													<option value="CIPHER">CUSTOM</option>
+											</select></td>
+											<td colspan="2"><select class="form-control input-sm"
+												id="if-selected-cipherrule">
+													<option value="CIPHER">CUSTOM</option>
+											</select><input type="text" placeholder=""
+												id="if-selected-cipherrule-parameters"
+												class="form-control
+												input-sm "
+												style="margin-top: 5px;"></input></td>
+
+										</tr>
+									</tbody>
+								</table>
+								<table id="tbl-response-buscontrol"
+									class="table table-striped table-bordered" hidden="true">
+									<thead>
+										<tr>
+											<th colspan="2">Control Response</th>
+										</tr>
+									</thead>
+									<tbody>
+
+									</tbody>
+								</table>
+								<div class="pull-right" style="margin-bottom: 10px;">
+									<button type="button" class="btn btn-sm btn-info"
+										id="act-builder-buscall">Call</button>
+									<button type="button" class="btn btn-sm btn-primary"
+										id="act-builder-bussave" hidden="true">Save</button>
+									<button type="button" class="btn btn-sm btn-warning"
+										id="act-builder-busdelete" hidden="true">Delete</button>
+								</div>
+							</div>
+							<br />
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading centered">
+				<span id="lb-moduleflow">IMB:PRIME-FLOW</span>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="panel">
+						<div class="panel-heading">
+							<div class="panel-options">
+								<ul class="nav nav-tabs nav-justified norm">
+									<li class=""><a data-toggle="tab" href="#tab-1">INF</a></li>
+									<li class="active"><a data-toggle="tab" href="#tab-2">
+											CONTEXT</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-3">
+											BUILDER</a></li>
+								</ul>
+							</div>
+						</div>
+						<div class="panel-body">
+
+
+							<div class="tab-content">
+								<div id="tab-1" class="tab-pane">
+									<div class="col-sm-3 b-r">
+										<div class="input-group">
+											<input id="if-inf-directory" type="text" class="form-control"></input>
+											<div class="input-group-btn">
+												<button data-toggle="dropdown"
+													class="btn btn-white dropdown-toggle" type="button">
+													<i class="fa fa-gear gray-bg"></i>
+												</button>
+												<ul class="dropdown-menu pull-right">
+													<li><a id="act-inf-refresh">Refresh Tree</a></li>
+													<li class="divider"></li>
+													<li><a id="act-inf-createfile">Create</a></li>
+													<li><a id="act-inf-remove">Remove</a></li>
+												</ul>
+											</div>
+
+										</div>
+										<div class="scrollable" style="font-size: 90%;">
+											<div id="msgtools-jtree"></div>
+										</div>
+									</div>
+									<div class="col-sm-9">
+										<div class="input-group m-b">
+											<span class="input-group-addon " id="lbl-inf-contextsite">
+											</span> <input id="if-inf-contextname" type="text"
+												class="form-control" style="text-transform: lowercase;"></input>
+											<div class="input-group-btn">
+												<button data-toggle="dropdown" id="lblbtn-infcontext"
+													class="btn btn-white dropdown-toggle" type="button">
+													<i class="fa fa-gear gray-bg"></i>
+												</button>
+												<ul class="dropdown-menu pull-right">
+													<li><a id="act-inf-edit">Edit</a></li>
+													<li><a id="act-inf-edit">Move to</a></li>
+													<li class="divider"></li>
+													<li><a id="act-inf-save">Save</a></li>
+												</ul>
+											</div>
+										</div>
+										<pre id="domain-editor"></pre>
+									</div>
+								</div>
+
+								<div id="tab-2" class="tab-pane active imx-screen-adjustment">
+									<div class="col-sm-3">
+										<div class="row">
+											<table id="tbl-context-flcontainer"
+												class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>Container</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+										<input type="text" id="tempif-context-flcontainer" value="-" />
+										<input type="text" id="tempif-flname" value="-" /> <input
+											type="text" id="tempif-context" value="-" />
+									</div>
+									<div class="col-sm-6 b-r b-l">
+										<div class="row">
+											<table id="tbl-context-buscontext"
+												class="table table-striped">
+												<thead>
+													<tr>
+														<th>Alias</th>
+														<th>Level</th>
+														<th>*</th>
+														<th>Site</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div class="col-sm-3">
+										<div class="row">
+											<div class="input-group">
+												<input id="if-buscontext" type="text"
+													class="form-control m-l-xs " value="INV/DOMAIN"></input>
+												<div class="input-group-btn">
+													<button data-toggle="dropdown"
+														class="btn btn-white dropdown-toggle" type="button">
+														<i class="fa fa-gear gray-bg"></i>
+													</button>
+													<ul class="dropdown-menu pull-right">
+														<li><a id="act-context-refresh">Refresh</a></li>
+														<li class="divider"></li>
+														<li><a id="act-context-add">Add</a></li>
+														<li class="divider"></li>
+														<li><a id="act-context-remove">Remove</a></li>
+														<li><a id="act-context-createadd">Create and Add</a></li>
+													</ul>
+												</div>
+
+											</div>
+											<div class="scrollable">
+												<div id="jt-buscontext"></div>
+											</div>
+										</div>
+									</div>
+
+								</div>
+								<div id="tab-3" class="tab-pane">
+									<div class="col-md-3 b-r imx-screen-adjustment">
+										<div class="row">
+											<table class="table table-striped" id="builder-container">
+												<thead>
+													<tr>
+
+														<th>Container</th>
+														<th>Type</th>
+													</tr>
+												</thead>
+												<tbody>
+												</tbody>
+											</table>
+										</div>
+										<div class="row">
+											<table class="table table-striped" id="builder-basebus">
+												<thead>
+													<tr>
+														<th>#</th>
+
+														<th></th>
+														<th>Name</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+
+										</div>
+										<div class="row">
+											<table class="table table-striped" id="builder-contextbus">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th></th>
+														<th>Name</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+
+										</div>
+									</div>
+									<div class="col-sm-9">
+										<div class="input-group m-b">
+											<span class="input-group-addon " id="lbl-builder-domainsite">/</span>
+											<input id="if-builder-filename" type="text"
+												class="form-control" style="width: 60%;"></input><input
+												id="if-builder-alias" type="text" class="form-control"
+												style="width: 40%;"></input>
+											<div class="input-group-btn">
+												<button data-toggle="dropdown" id="actlbl-builder-level"
+													class="btn btn-white dropdown-toggle" type="button">
+													BINDERKEY</button>
+												<ul class="dropdown-menu pull-right">
+													<li><a id="actlbl-builder-levelbase">BASE</a></li>
+													<li><a id="actlbl-builder-levelbinderkey">BINDERKEY</a></li>
+												</ul>
+											</div>
+
+											<div class="input-group-btn">
+												<button data-toggle="dropdown"
+													class="btn btn-white dropdown-toggle" type="button">
+													<i class="fa fa-gear gray-bg"></i>
+												</button>
+												<ul class="dropdown-menu pull-right">
+													<li><a id="act-builder-edit">Edit</a></li>
+													<li><a id="act-builder-delete">Delete</a></li>
+													<li class="divider"></li>
+													<li><a id="act-builder-addbus">Add Bus</a></li>
+													<li><a id="act-builder-controlbus">Control Bus</a></li>
+												</ul>
+											</div>
+										</div>
+										<pre id="builder-editor"></pre>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<!-- JSTREE -->
+		<script src="../../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+
+		<!-- Ace Editor -->
+		<script src="../../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+
+		<!-- Nestable List -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/nestable/jquery.nestable.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/nestable/jquery.nestable.js}"></script>
+
+		<script src="../../ui/js/businessfl_script.js"
+			th:src="@{/ui/js/businessfl_script.js}"></script>
+
+	</div>
+
+
+</body>
+
+</html>

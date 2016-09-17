@@ -1,0 +1,63 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.CustomUtil
+
+rule "initiation-calibration:input-validity-check"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "initiation-calibration:input-validity-check", 
+        		round == 0,
+        		!CustomUtil.isNull(facts.get("_eta")),
+        		!CustomUtil.isNull(facts.get("_terminalCode")),
+        		!CustomUtil.isNull(facts.get("_type")),
+        		!CustomUtil.isNull(facts.get("_rmsKey"))
+    			)
+    then
+    	$em.logs("initiation-calibration:input-validity-check");
+    	$em.setPhase("calibration:prime-logs");
+    	$em.setRound(1);
+    	update( $em );
+end
+
+rule "input-validity-check:ETA"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "initiation-calibration:input-validity-check", 
+        		round == 0, CustomUtil.isNull(facts.get("_eta"))
+    			)
+    then
+    	$em.logs("ERR - ARGUMENT ETA HAS VALUE NULL; CANNOT CONTINUE");
+end
+
+rule "input-validity-check:TERMINAL-CODE"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "initiation-calibration:input-validity-check", 
+        		round == 0, CustomUtil.isNull(facts.get("_terminalCode"))
+    			)
+    then
+    	$em.logs("ERR - ARGUMENT TERMINAL-CODE HAS VALUE NULL; CANNOT CONTINUE");
+end
+
+rule "input-validity-check:TYPE"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "initiation-calibration:input-validity-check", 
+        		round == 0,CustomUtil.isNull(facts.get("_type"))
+    			)
+    then
+    	$em.logs("ERR - ARGUMENT TYPE HAS VALUE NULL; CANNOT CONTINUE");
+end
+
+rule "input-validity-check:RMSKEY"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "initiation-calibration:input-validity-check", 
+        		round == 0, CustomUtil.isNull(facts.get("_rmsKey"))
+    			)
+    then
+    	$em.logs("ERR - ARGUMENT RMSKEY HAS VALUE NULL; CANNOT CONTINUE");
+end

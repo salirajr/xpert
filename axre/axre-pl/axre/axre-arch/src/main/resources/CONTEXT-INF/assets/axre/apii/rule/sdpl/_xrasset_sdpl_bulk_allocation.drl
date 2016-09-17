@@ -1,0 +1,182 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdpl
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle assignmentBulkAllocation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_sdpl","extract_bulk_aircraftvisit_offsets");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("SESSIONID",em.facts.get("_inSessionId") );
+	mapper.parameterized("LIMIT",em.facts.getInt("bulklimit") );
+	mapper.parameterized("EDGEKEY",em.facts.get("_visitSeq") );
+	em.facts.putList("onworkbulk", reference.getList(mapper.getQuery()));
+	
+	em.facts.put("bulk:stand", 0);
+	return em;		
+}
+
+function EphemeralMantle assignmentBulk(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	em = purge(em);
+	
+	em.facts.put("_visitSeq", em.facts.getListItemAt("onworkbulk", em.facts.getInt("bulk:stand")));
+	em.facts.put("bulk:stand", em.facts.getInt("bulk:stand") + 1);
+	return em;		
+}
+
+function EphemeralMantle purge(EphemeralMantle em){
+	
+	em.facts.remove("_rmsKeyD");
+	em.facts.remove("_rmsKeyA");
+	em.facts.remove("_airlineCode");
+	em.facts.remove("_categoryCode");
+	em.facts.remove("_serviceType");
+	em.facts.remove("_aircraftType");
+	em.facts.remove("isOperable");
+	em.facts.remove("stand:i");
+	em.facts.remove("_visitSeq");
+	em.facts.remove("isStandFitness");
+	em.facts.remove("standList:i=0");
+	em.facts.remove("standinoperation");
+	em.facts.remove("dayOfWeek");
+	em.facts.remove("stackFacts");
+	em.facts.remove("standList");
+	em.facts.remove("standconflictoperation");
+	
+	return em;		
+}
+
+function EphemeralMantle resourceDeflection(EphemeralMantle em, DecisionTable decisionTable,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	decisionTable.relace("_xdt_op_nonalocatedresource");
+	decisionTable.set("RESOURCE_TYPE", "STAND");
+	decisionTable.set("TERMINAL_CODE", em.facts.get("_terminalCode"));
+	decisionTable.laced();
+	
+	mapper.relace("_sqlmap_sdpl","update_aircraft_stand_parking_pl");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	mapper.parameterized("STAND_CODE",  decisionTable.get("FICTIVE_RESOURCE"));
+	mapper.parameterized("GATE_CODE",  "");
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_sdpl","update_status_rmsplanning");
+	mapper.parameterized("RMSKEYA",em.facts.get("_rmsKeyA") );
+	mapper.parameterized("RMSKEYD",em.facts.get("_rmsKeyD") );
+	reference.modify(mapper.getQuery());
+		
+	return em;		
+}
+
+rule "stand-bulk-allocation"
+    when
+        $em: EphemeralMantle(operationName == "stand-planning",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulkoffset") < facts.getInt("bulksize"),
+        			round == 0
+    			)
+    then
+    	
+    	$em = assignmentBulkAllocation($em, mapper, reference);
+    	$em.setPhase("bulk-allocation:assignation");
+		update ( $em );
+end
+
+rule "stand-bulk-allocation:no-assignation"
+    when
+        $em: EphemeralMantle(operationName == "stand-planning",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulksize") == 0,
+        			round == 0
+    			)
+    then
+    	$em.facts.put("return","NO STAND PROCESSED!!");
+    	$em.setPhase("bulk-allocation:no-assignation");
+end
+
+rule "stand-bulk-allocation:assignation"
+    when
+        $em: EphemeralMantle(operationName == "stand-planning",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:stand") < facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em = assignmentBulk($em, mapper, reference);
+    	$em.logs("stand-bulk-allocation:assignation of RMSKEY " + 
+    		$em.facts.get("_visitSeq") + " - #"+ $em.facts.getInt("bulk:stand") + 
+    			" offset:"+ $em.facts.getInt("bulkoffset") +"\n");
+    	$em.setPhase("single-allocation");
+    	update ( $em );
+end
+
+rule "stand-bulk-allocation:reassignation"
+    when
+        $em: EphemeralMantle(operationName == "stand-planning",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:stand") >= facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("bulkoffset", $em.facts.getInt("bulkoffset") +  $em.facts.getInt("bulklimit"));
+    	$em.logs("INC - "+$em.facts.getInt("bulklimit") +" OFFSET  #"+ $em.facts.getInt("bulkoffset") +"\n");
+    	
+		$em.facts.remove("onworkbulk");
+		$em.facts.put("bulk:stand", 0);
+		$em.facts.put("standList:i", 0);
+    	$em.setPhase("bulk-allocation");
+    	update ( $em );
+end
+
+
+rule "stand-bulk-operation:single-allocation:ends"
+	salience 80
+    when
+       $em: EphemeralMantle(operationName == "stand-planning",
+        	phase == "single-allocation:initiation", 
+        		facts.get("_type") == "A", 
+	        		facts.getList("standList").size() <= facts.getInt("standList:i"),
+	        			round == 0
+    			)
+    then
+    	
+    	$em.logs("bulk-operation:single-allocation:ends with no allocation!!\n\n");
+    	$em = resourceDeflection($em, decisionTable, mapper, reference);
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end
+
+rule "stand-bulk-operation:single-allocation:fitness" 
+	salience 80
+    when
+        $em: EphemeralMantle(operationName == "stand-planning",
+        	phase == "single-allocation:fitness-stand", 
+        		facts.get("_type") == "A", 
+	        		facts.getBoolean("isStandFitness"),
+	        			round == 0
+    			)
+    then
+    	$em.logs("bulk-operation:single-allocation:available allocated!\n\n");
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end

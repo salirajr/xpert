@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/msgtools_style.css"
+	th:href="@{/ui/css/msgtools_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+
+	
+	<span layout:fragment="page-title">TRANSFORM</span>
+	
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default btn-outline"
+			title="New" id="addNew" >
+			<i class="fa fa-plus"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Save" id="btn-save">
+			<i class="fa fa-floppy-o"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Edit Transform" id="btn-detail-transform-rule" >
+			<i class="fa fa-file-text-o"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="btn-refresh">
+			<i class="fa fa-refresh"></i>
+		</button>
+		<input type="hidden" id="transform-id" th:value="${transformId}" ></input>
+		<input type="hidden" id="actionTemp" th:value="${transformId}" ></input>
+	</div>
+	
+	<div layout:fragment="main-content">
+		<div class="panel-body ">
+			<div class="panel-group" id="messageingContext">
+				<div class="panel">
+					<div class="panel-heading">
+						<h5 class="panel-title">
+							<a data-toggle="collapse" data-parent="#messageingContext"
+								href="#context">Transfrom</a>
+						</h5>
+					</div>
+					<div id="context" class="panel-collapse collapse in">
+						<div class="panel-body white-bg ">
+							<div class="row">
+								<div class="col-lg-3 scrollable">
+									<div class="input-group m-b">
+										<span class="input-group-addon">From</span> <select
+											class="form-control m-b" id="from">
+											<option value="json">Json</option>
+											<option value="xml">Xml</option>
+											<option value="object">Object</option>
+										</select>
+									</div>
+									<div class="input-group m-b">
+										<span class="input-group-addon">To </span> <select
+											class="form-control m-b" id="to">
+											<option value="json">Json</option>
+											<option value="xml">Xml</option>
+											<option value="object">Object</option>
+										</select>
+									</div>
+									
+								</div>
+								<div class="col-lg-9 b-l">
+									<div class="panel panel-default">
+										<div class="panel-body" id="panel-context">
+											<div class="hr-line-dashed"></div>
+											<pre id="context-editor"></pre>
+										</div>
+										<div class="panel-heading">
+											<h3 class="panel-title" align="center">Transform Rule</h3>
+											<a id="addData" ><i class="fa fa-plus fa-md"></i></a>
+										</div>
+										<div class="panel-body table-responsive">
+											<table id="dt-transform-rule"
+												class="table table-striped table-bordered">
+												<thead>
+													<tr>
+														<th>SEQ</th>
+														<th>RULE SOURCE</th>
+														<th>RULE TARGET</th>
+														<th>RULE CONFIG</th>
+														<th>RULE MATRIX</th>
+													</tr>
+												</thead>
+												<tfoot>
+
+												</tfoot>
+											</table>
+										</div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-group" id="messagingContent">
+				<div class="panel">
+					<div class="panel-heading">
+						<h5 class="panel-title">
+							<a data-toggle="collapse" data-parent="#messagingContent"
+								href="#content">Messages Constructor</a>
+						</h5>
+					</div>
+					<div id="content" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="input-group m-b">
+										<span class="input-group-addon ">Message-In </span> 
+										<span class="input-group-btn">
+											<button type="button" id="send" class="btn btn-primary">SEND</button>
+										</span>
+									</div>
+									<div class="hr-line-dashed"></div>
+									<pre id="msg-in-editor"></pre>
+								</div>
+								<div class="col-lg-6">
+									<div class="input-group m-b">
+										<span class="input-group-addon">Message-Out </span> 
+										<span class="input-group-btn">
+											<button type="button" class="btn" id="setTemplate" value=""></button>
+										</span>
+									</div>
+									<div class="hr-line-dashed"></div>
+									<pre id="msg-out-editor"></pre>
+								</div>
+								
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+	
+		<script src="../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+	
+		<!-- Data Tables -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+			<!-- Chosen -->
+		<script src="../../ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js}"></script>
+	
+
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/transformer.js"
+			th:src="@{/ui/js/transformer.js}"></script>
+	</div>
+</body>
+
+</html>

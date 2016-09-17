@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:EIservices"
+	xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:impl="urn:EIservices"
+	xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:intf="urn:EIservices">
+	<wsdl:message name="resetPoolRequest">
+	</wsdl:message>
+	<wsdl:message name="resetPoolResponse">
+	</wsdl:message>
+	<wsdl:message name="executeStandOpRuleResponse">
+		<wsdl:part name="executeStandOpRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="initAionRulebaseRequest">
+	</wsdl:message>
+	<wsdl:message name="initAionRulebaseResponse">
+	</wsdl:message>
+	<wsdl:message name="executeCounterPlRuleRequest">
+		<wsdl:part name="in0" type="xsd:dateTime">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCounterPlRuleResponse">
+		<wsdl:part name="executeCounterPlRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCounterOpRuleResponse">
+		<wsdl:part name="executeCounterOpRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCarouselOpRuleResponse">
+		<wsdl:part name="executeCarouselOpRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCounterOpRuleRequest">
+		<wsdl:part name="in0" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in1" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in2" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeStandPlRuleRequest">
+		<wsdl:part name="in0" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in1" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in2" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in3" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in4" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCarouselOpRuleRequest">
+		<wsdl:part name="in0" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in1" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in2" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in3" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCarouselPlRuleResponse">
+		<wsdl:part name="executeCarouselPlRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeStandPlRuleResponse">
+		<wsdl:part name="executeStandPlRuleReturn" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeCarouselPlRuleRequest">
+		<wsdl:part name="in0" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in1" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="executeStandOpRuleRequest">
+		<wsdl:part name="in0" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in1" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in2" type="xsd:dateTime">
+		</wsdl:part>
+		<wsdl:part name="in3" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in4" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in5" type="xsd:int">
+		</wsdl:part>
+		<wsdl:part name="in6" type="xsd:int">
+		</wsdl:part>
+		<wsdl:part name="in7" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in8" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in9" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in10" type="xsd:string">
+		</wsdl:part>
+		<wsdl:part name="in11" type="xsd:string">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="EIservicesPort">
+		<wsdl:operation name="executeStandOpRule"
+			parameterOrder="in0 in1 in2 in3 in4 in5 in6 in7 in8 in9 in10 in11">
+			<wsdl:input name="executeStandOpRuleRequest" message="impl:executeStandOpRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeStandOpRuleResponse" message="impl:executeStandOpRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCounterOpRule"
+			parameterOrder="in0 in1 in2">
+			<wsdl:input name="executeCounterOpRuleRequest" message="impl:executeCounterOpRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeCounterOpRuleResponse" message="impl:executeCounterOpRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCarouselOpRule"
+			parameterOrder="in0 in1 in2 in3">
+			<wsdl:input name="executeCarouselOpRuleRequest" message="impl:executeCarouselOpRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeCarouselOpRuleResponse"
+				message="impl:executeCarouselOpRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="resetPool">
+			<wsdl:input name="resetPoolRequest" message="impl:resetPoolRequest">
+			</wsdl:input>
+			<wsdl:output name="resetPoolResponse" message="impl:resetPoolResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="initAionRulebase">
+			<wsdl:input name="initAionRulebaseRequest" message="impl:initAionRulebaseRequest">
+			</wsdl:input>
+			<wsdl:output name="initAionRulebaseResponse" message="impl:initAionRulebaseResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCarouselPlRule"
+			parameterOrder="in0 in1">
+			<wsdl:input name="executeCarouselPlRuleRequest" message="impl:executeCarouselPlRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeCarouselPlRuleResponse"
+				message="impl:executeCarouselPlRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCounterPlRule"
+			parameterOrder="in0">
+			<wsdl:input name="executeCounterPlRuleRequest" message="impl:executeCounterPlRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeCounterPlRuleResponse" message="impl:executeCounterPlRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeStandPlRule"
+			parameterOrder="in0 in1 in2 in3 in4">
+			<wsdl:input name="executeStandPlRuleRequest" message="impl:executeStandPlRuleRequest">
+			</wsdl:input>
+			<wsdl:output name="executeStandPlRuleResponse" message="impl:executeStandPlRuleResponse">
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="EIservicesSoapBinding" type="impl:EIservicesPort">
+		<wsdlsoap:binding style="rpc"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="executeStandOpRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeStandOpRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeStandOpRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCounterOpRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeCounterOpRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeCounterOpRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCarouselOpRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeCarouselOpRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeCarouselOpRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="resetPool">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="resetPoolRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="resetPoolResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="initAionRulebase">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="initAionRulebaseRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="initAionRulebaseResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCarouselPlRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeCarouselPlRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeCarouselPlRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeCounterPlRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeCounterPlRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeCounterPlRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="executeStandPlRule">
+			<wsdlsoap:operation soapAction="" />
+			<wsdl:input name="executeStandPlRuleRequest">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:input>
+			<wsdl:output name="executeStandPlRuleResponse">
+				<wsdlsoap:body use="encoded"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:EIservices" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="EIservices">
+		<wsdl:port name="EIservices" binding="impl:EIservicesSoapBinding">
+			<wsdlsoap:address
+				location="http://localhost:8080/axrewire/EIservices" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

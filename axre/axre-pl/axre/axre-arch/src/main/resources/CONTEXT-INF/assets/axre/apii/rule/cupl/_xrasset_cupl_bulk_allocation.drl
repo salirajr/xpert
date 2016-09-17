@@ -1,0 +1,182 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.cupl
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle allocationAssignment(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_cupl","extract_bulk_rmsplanning_offsets");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("SESSIONID",em.facts.get("_inSessionId") );
+	mapper.parameterized("LIMIT",em.facts.getInt("bulklimit") );
+	mapper.parameterized("EDGEKEY",em.facts.getInt("_rmsKey") );
+	em.facts.putList("onworkbulk", reference.getList(mapper.getQuery()));
+	
+	em.facts.put("bulk:counter", 0);
+	return em;		
+}
+
+function EphemeralMantle assignment(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	em = purge(em);
+	
+	em.facts.put("_rmsKey", em.facts.getListItemAt("onworkbulk", em.facts.getInt("bulk:counter")));
+	em.facts.put("bulk:counter", em.facts.getInt("bulk:counter") + 1);
+	return em;		
+}
+
+function EphemeralMantle resourceDeflection(EphemeralMantle em, DecisionTable decisionTable,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	decisionTable.relace("_xdt_op_nonalocatedresource");
+	decisionTable.set("RESOURCE_TYPE", "COUNTER");
+	decisionTable.set("TERMINAL_CODE", em.facts.get("_terminalCode"));
+	decisionTable.laced();
+	
+	mapper.relace("_sqlmap_cupl","delete_rms_flight_counter_pl");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_cupl","insert_rms_flight_counter_pl");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	mapper.parameterized("COUNTER_CODE",  decisionTable.get("FICTIVE_RESOURCE"));
+	mapper.parameterized("CHECK_IN_COUNTER_OPEN_TIME",  em.facts.get("checkincounteropentime"));
+	mapper.parameterized("CHECK_IN_COUNTER_CLOSE_TIME",  em.facts.get("checkincounterclosetime"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_cupl","update_status_rmsplanning");
+	mapper.parameterized("RMSKEY",em.facts.get("_rmsKey") );
+	reference.modify(mapper.getQuery());	
+	
+	return em;		
+}
+
+function EphemeralMantle purge(EphemeralMantle em){
+	
+	em.facts.remove("_airlineCode");
+	em.facts.remove("contactOpentime");
+	em.facts.remove("reclaimList:i");
+	em.facts.remove("reclaimList");
+	em.facts.remove("_terminalCode");
+	em.facts.remove("closetime");
+	em.facts.remove("_rmsKey");
+	em.facts.remove("_serviceType");
+	em.facts.remove("reclaim");
+	em.facts.remove("_rmsKey");
+	em.facts.remove("reclaiminavailable");
+	
+	return em;		
+}
+
+rule "counter-bulk-allocation"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulkoffset") <= facts.getInt("bulksize"),
+        			round == 0
+    			)
+    then
+    	
+    	$em = allocationAssignment($em, mapper, reference);
+    	$em.setPhase("bulk-allocation:assignation");
+		update ( $em );
+end
+
+rule "counter-bulk-allocation:no-assignation"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase =="bulk-allocation", 
+        		facts.getInt("bulksize") == 0,
+        			round == 0
+    			)
+    then
+    	$em.facts.put("return","NO COUNTER PROCESSED!!");
+    	$em.setPhase("bulk-allocation:no-assignation");
+end
+
+rule "counter-bulk-allocation:assignation"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:counter") < facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em = assignment($em, mapper, reference);
+    	$em.logs("counter-bulk-allocation:assignation of RMSKEY " + 
+    		$em.facts.get("_rmsKey") + " - #"+ $em.facts.getInt("bulk:counter") + 
+    			" offset:"+ $em.facts.getInt("bulkoffset") +"\n");
+    	$em.setPhase("single-allocation");
+    	update ( $em );
+end
+
+rule "counter-bulk-allocation:reassignation"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase =="bulk-allocation:assignation", 
+        		facts.getInt("bulk:counter") >= facts.getList("onworkbulk").size(),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("bulkoffset", $em.facts.getInt("bulkoffset") +  $em.facts.getInt("bulklimit"));
+    	$em.logs("INC - "+$em.facts.getInt("bulklimit") +" OFFSET  #"+ $em.facts.getInt("bulkoffset") +"\n");
+    	
+    	$em.facts.remove("onworkbulk");
+		$em.facts.put("bulk:counter", 0);
+		$em.facts.put("counter:i", 0);
+		
+    	$em.setPhase("bulk-allocation");
+    	update ( $em );
+end
+
+rule "counter-bulk-allocation:single-allocation:ends"
+	salience 80
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:initiation", 
+        		facts.get("_type") == "A", 
+        			facts.getNumeric("counter:n") <= facts.getInt("counter:i"),
+        				round == 0
+    			)
+    then
+    	$em.logs("bulk-operation:single-allocation:ends with no allocation!!\n\n");
+    	$em = resourceDeflection($em, decisionTable, mapper, reference);
+    		
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end
+
+rule "counter-bulk-allocation:single-allocation:available" 
+	salience 80
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:availability-counter", 
+        		facts.get("_type") == "A", 
+	        		facts.getNumeric("operationconflict") == 0,
+	        			round == 0
+    			)
+    then
+
+    	$em.logs("bulk-operation:single-allocation:available allocated!\n\n");
+    	$em.setPhase("bulk-allocation:assignation");
+    	update( $em );
+end

@@ -1,0 +1,64 @@
+//created on: Aug 28, 2031
+package assets.axre.rule.apii.cupl
+
+//list any import classes here.
+
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+
+rule "fatal-error:no-type-provided"
+	salience 110
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, 
+        			CustomUtil.isNullOrBlank(facts.get("_type") )
+    			)
+    then
+    	$em.setPhase("fatal-error:no-type-provided");
+    	$em.facts.put("return","ERR: TYPE IS NULL");
+    	
+end
+ 
+rule "incomplete-input:in0"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("A"), 
+        			CustomUtil.isNullOrBlank(facts.get("in0"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: ETAD IS NULL");
+    	
+end
+
+rule "incomplete-input:in1"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("C"), 
+        			CustomUtil.isNullOrBlank(facts.get("in1"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: RMS KEY IS NULL");
+    	
+end
+
+rule "incomplete-input:in3"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("A"), 
+        			CustomUtil.isNullOrBlank(facts.get("in1"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: SESSION ID IS NULL");
+    	
+end

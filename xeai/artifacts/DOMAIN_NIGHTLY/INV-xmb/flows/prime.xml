@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+
+	<int:service-activator id="saPreprocessor"
+		input-channel="xmbChannelOut" ref="preprocessor" method="repress">
+	</int:service-activator>
+
+	<bean id="preprocessor" class="com.xybase.ax.eai.archcomp.servicebinder.RepressorImpl">
+		<property name="baseCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.larik.Larik"
+				factory-bean="contextLarikDao" factory-method="get">
+				<constructor-arg value="IMB, BPPCPF" />
+			</bean>
+		</property>
+	</bean>
+
+	<int:service-activator id="saDistributor"
+		input-channel="channelDistributorIn" method="repress" ref="distributor" />
+
+	<bean id="distributor"
+		class="com.xybase.ax.eai.archcomp.servicebinder.RepressorBinderImpl">
+		<property name="binderKey" value="Endpoint" />
+		<property name="baseCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.larik.Larik"
+				factory-bean="contextLarikDao" factory-method="get">
+				<constructor-arg value="IMB, BDPF" />
+			</bean>
+		</property>
+		<property name="lCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="contextLookupDao" factory-method="get">
+				<constructor-arg value="IMB, BDPF" />
+			</bean>
+		</property>
+	</bean>
+
+
+</beans>

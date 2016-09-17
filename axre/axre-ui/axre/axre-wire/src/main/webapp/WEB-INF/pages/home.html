@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/decorator">
+<body>
+	<div layout:fragment="content">
+		<div class="row wrapper-content col-md-offset-2">
+			<div class="container-fluid">
+				<div class="col-lg-10">
+					<div class="wrapper wrapper-content animated fadeInRight">
+
+						<div class="ibox-content m-b-sm border-bottom">
+							<div class="p-xs">
+								<div class="pull-left m-r-md">
+									<i class="fa fa-puzzle-piece text-navy mid-icon"></i>
+								</div>
+								<h2>Welcome in AXRE Web Console</h2>
+								<span>Development, Configuration and Management
+									Administration</span>
+							</div>
+						</div>
+
+						<div class="ibox-content forum-container">
+
+							<div class="forum-title">
+								<h3>Airpot Xpert Rule Engine</h3>
+							</div>
+
+							<div class="forum-item active">
+								<div class="row">
+									<div class="col-lg-9">
+										<div class="forum-icon">
+											<i class="fa fa-code"></i>
+										</div>
+										<a th:href="@{/fabricates/home.htm}" class="forum-item-title">Development</a>
+										<div class="forum-sub-title">Add, Create, Modify
+											Rule(.drl) asset defition, concrete knowledge of fact driven
+											execution</div>
+									</div>
+
+								</div>
+							</div>
+
+							<div class="forum-item active">
+								<div class="row">
+									<div class="col-md-9">
+										<div class="forum-icon">
+											<i class="fa fa-gears"></i>
+										</div>
+										<a th:href="@{/asset_fabrics.htm}" class="forum-item-title">Configuration</a>
+										<div class="forum-sub-title">Define Rule(.drl) as an
+											asset configuration, implements CDI spring context(.xml)</div>
+									</div>
+
+								</div>
+							</div>
+
+							<div class="forum-item active">
+								<div class="row">
+									<div class="col-md-9">
+										<div class="forum-icon">
+											<i class="fa fa-anchor"></i>
+										</div>
+										<a th:href="@{/asset_fabrics.htm}" class="forum-item-title">Management</a>
+										<div class="forum-sub-title">Soft-rule asset management
+											+ Query asset management, .xls file based with defined
+											template</div>
+									</div>
+
+								</div>
+							</div>
+							<div class="forum-item active">
+								<div class="row">
+									<div class="col-md-9">
+										<div class="forum-icon">
+											<i class="fa fa-play"></i>
+										</div>
+										<a th:href="@{/asset_fabrics.htm}" class="forum-item-title">Mock
+											Up</a>
+										<div class="forum-sub-title">Simple Subtling mockup test for
+											rule test</div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="xPar" class="java.util.HashMap">
+		<constructor-arg>
+			<map>
+				<entry key="previousBTime" value="#{transformUtil.ifNullAssigns(@prevBRetriveal.retrieve(), @dateUtil.asString(@batchUtil.adjustTime(@dateUtil.getNow(), 1200)))}" />
+				<entry key="adjustedBTime"
+					value="#{@dateUtil.asString(@batchUtil.adjustTime(@dateUtil.getNow(), 1))}" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="transformUtil" class="com.xybase.ax.eai.archcomp.common.util.TransformUtil" />
+
+
+	<bean id="prevBRetriveal" class="com.xybase.ax.eai.archcomp.common.dao.SoleRetrieval">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<constructor-arg
+			value="select to_char(max(audit_end), 'MM-DD-YYYY HH24:MI:SS') as previous_batch_point from audit.xeai_audit_transaction_state where audit_set in ('INBOUND-MESSAGE', 'OUTBOUND-MESSAGE')" />
+		<constructor-arg value="previous_batch_point" />
+	</bean>
+
+	<bean id="batchUtil" class="com.xybase.ax.eai.xybatch.common.util.BatchUtil" />
+	<bean id="dateUtil" class="com.xybase.ax.eai.archcomp.common.util.DateUtil" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xybatch/commons/datasource.xml" />
+
+</beans>

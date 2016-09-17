@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd  http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml">
+
+	<bean id="lookupConnection" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="DATABASE.DEFINITION.CONNECTION.RMS" />
+	</bean>
+
+	<bean id="lsnrDSInsert"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url"
+			value="#{'jdbc:postgresql://' + @lookupConnection.get('host') + ':' + @lookupConnection.get('port') + '/' + @lookupConnection.get('database-name') + '?ApplicationName=XEAIPGLISTENER'}" />
+		<property name="username" value="#{@lookupConnection.get('username')}" />
+		<property name="password" value="#{@lookupConnection.get('password')}" />
+	</bean>
+
+	<bean id="pgListenerInsert"
+		class="com.xybase.ax.eai.archcomp.xyscrib.listener.pg.PostgresNotifyListener">
+		<constructor-arg ref="lsnrDSInsert" />
+		<constructor-arg value="after_insert" />
+		<constructor-arg ref="defaultChannelIn" />
+		<constructor-arg value="true" />
+		<property name="identifier" value="#{@lookupConnection.get('database-name')}" />
+	</bean>
+
+	<bean id="lsnrDSDelete"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url"
+			value="#{'jdbc:postgresql://' + @lookupConnection.get('host') + ':' + @lookupConnection.get('port') + '/' + @lookupConnection.get('database-name') + '?ApplicationName=XEAIPGLISTENER'}" />
+		<property name="username" value="#{@lookupConnection.get('username')}" />
+		<property name="password" value="#{@lookupConnection.get('password')}" />
+	</bean>
+
+	<bean id="pgListenerDelete"
+		class="com.xybase.ax.eai.archcomp.xyscrib.listener.pg.PostgresNotifyListener">
+		<constructor-arg ref="lsnrDSDelete" />
+		<constructor-arg value="after_delete" />
+		<constructor-arg ref="defaultChannelIn" />
+		<constructor-arg value="true" />
+		<property name="identifier" value="#{@lookupConnection.get('database-name')}" />
+	</bean>
+
+	<bean id="lsnrDSUpdate"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url"
+			value="#{'jdbc:postgresql://' + @lookupConnection.get('host') + ':' + @lookupConnection.get('port') + '/' + @lookupConnection.get('database-name') + '?ApplicationName=XEAIPGLISTENER'}" />
+		<property name="username" value="#{@lookupConnection.get('username')}" />
+		<property name="password" value="#{@lookupConnection.get('password')}" />
+	</bean>
+
+	<bean id="pgListenerUpdate"
+		class="com.xybase.ax.eai.archcomp.xyscrib.listener.pg.PostgresNotifyListener">
+		<constructor-arg ref="lsnrDSUpdate" />
+		<constructor-arg value="after_update" />
+		<constructor-arg ref="defaultChannelIn" />
+		<constructor-arg value="true" />
+		<property name="identifier" value="#{@lookupConnection.get('database-name')}" />
+	</bean>
+
+	<int:channel id="defaultChannelIn" />
+
+	<int:header-enricher input-channel="defaultChannelIn"
+		output-channel="defaultChannelOut">
+		<int:header name="PROCESSOR" value="AXPgDataXCHG" />
+	</int:header-enricher>
+
+	<int:channel id="defaultChannelOut" />
+
+	<int:outbound-channel-adapter channel="defaultChannelOut"
+		method="bridge">
+		<bean class="com.xybase.ax.eai.archcomp.message.bridge.MessageBridge">
+			<constructor-arg value="PROCESSOR" />
+		</bean>
+	</int:outbound-channel-adapter>
+
+</beans>

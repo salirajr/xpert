@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+	<int:channel id="defaultChannelIn" />
+
+	<int:channel id="defaultChannelOut">
+		<int:queue />
+	</int:channel>
+
+	<int:chain input-channel="defaultChannelIn">
+		<int:header-enricher>
+			<int:header name="Endpoint" expression="headers['XeaiCores']" />
+			<int:header name="IntegrationID" expression="@xeaiSequence.retrieve()" />
+			<int:header name="XeaiEventID" value="AcdmDataSync" />
+		</int:header-enricher>
+		<int:outbound-channel-adapter method="audit">
+			<bean class="com.xybase.ax.eai.archcomp.handler.audit.DefaultAuditHandler">
+				<property name="auditLogDao" ref="auditLogDao" />
+				<property name="channelOut" ref="defaultChannelOut" />
+				<property name="extractor">
+					<bean id="jsonExtractor"
+						class="com.xybase.ax.eai.archcomp.transformer.extract.JsonExtractor" />
+				</property>
+				<property name="auditLogConfig">
+					<bean
+						class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+						factory-bean="auditLogConfigDao" factory-method="get">
+						<constructor-arg value="AcdmDataSync" index="0" />
+						<constructor-arg value="5010" index="1" />
+						<constructor-arg value="0" index="2" />
+					</bean>
+				</property>
+			</bean>
+		</int:outbound-channel-adapter>
+	</int:chain>
+
+
+
+
+</beans>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<bean id="wireService-cuop" class="com.ptxti.concept.ruleengine.wire.AxreWireService">
+		<property name="factsMapper" ref="factsMapper-cuop" />
+		<property name="knowledgeSession" ref="cuopSession" />
+		<property name="operationName" value="counter-operation" />
+	</bean>
+
+	<bean id="factsMapper-cuop" class="com.ptxti.concept.ruleengine.mapper.DomFactsMapper">
+		<property name="facts" ref="resultMap-extraction-cuop" />
+		<property name="resultMap" ref="resultMap-injection-cuop" />
+		<property name="template" value="ns1:executeCounterOpRuleResponse xmlns:ns1='urn:EIservices' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' soapenv:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'" />
+	</bean>
+
+	<bean id="resultMap-extraction-cuop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="in0" value="/ns1:executeCounterOpRule/in0" />
+				<entry key="in1" value="/ns1:executeCounterOpRule/in1" />
+				<entry key="in2" value="/ns1:executeCounterOpRule/in2" />
+			</map>
+		</constructor-arg>
+	</bean>
+	
+	<bean id="resultMap-injection-cuop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="return" value="/ns1:executeCounterOpRuleResponse/executeCounterOpRuleReturn" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+</beans>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+
+	<int:channel id="defaultChannelIn-sync" />
+
+	<!-- FREE DEFINTION data-lookup references, free format -->
+	<int-http:inbound-gateway request-channel="defaultChannelIn-sync"
+		path="/sync/{UniquePatientID}/MessageReceiver" supported-methods="POST">
+		<int-http:header name="XeaiCores" expression="'XYEAIHTTP/S/UPID/MR'" />
+		<int-http:header name="PREPROCESSOR"
+			expression="@dataUPID.containsKey((#pathVariables.UniquePatientID).toUpperCase())?@dataUPID.get((#pathVariables.UniquePatientID).toUpperCase()):'DEFAULT'" />
+		<int-http:header name="UniquePatientID" expression="#pathVariables.UniquePatientID" />
+		<int-http:header name="XeaiIntegrationType"
+			expression="'SYNCHRONOUS'" />
+	</int-http:inbound-gateway>
+
+	<!-- ON DEFINED DEFINTION arch-lookup references, templated json, xml, text -->
+	<int-http:inbound-gateway request-channel="defaultChannelIn-sync"
+		path="/sync/fxed/receiver/{UniquePatientID}" supported-methods="POST">
+		<int-http:header name="XeaiCores" expression="'XYEAIHTTP/S/fxed/R/UPID'" />
+		<int-http:header name="PREPROCESSOR"
+			expression="@archUPID.containsKey((#pathVariables.UniquePatientID).toUpperCase())?@archUPID.get((#pathVariables.UniquePatientID).toUpperCase()):'UNKNOWN'" />
+		<int-http:header name="UniquePatientID" expression="#pathVariables.UniquePatientID" />
+		<int-http:header name="XeaiIntegrationType"
+			expression="'SYNCHRONOUS'" />
+	</int-http:inbound-gateway>
+
+</beans>

@@ -1,0 +1,51 @@
+<definitions name="verifyGmhsVisitor" targetNamespace="http://www.xybase.com/ws/gmhs/GhmsVVSvc"
+	xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:tns="http://www.xybase.com/ws/gmhs/GhmsVVSvc" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<message name="GmhsVisitorVerificationRq">
+		<part name="registered_id" type="xsd:string" />
+		<part name="registered_name" type="xsd:string" />
+		<part name="registered_company_name" type="xsd:string" />
+		<part name="registered_company_department" type="xsd:string" />
+		<part name="front_photo" type="xsd:string" />
+	</message>
+
+	<message name="GmhsVisitorVerificationRp">
+		<part name="registered_id" type="xsd:string" />
+		<part name="status" type="xsd:int" />
+		<part name="status_message" type="xsd:string" />
+	</message>
+
+	<portType name="GmhsVVPortTy">
+		<operation name="verifyGmhsVisitor">
+			<input message="tns:GmhsVisitorVerificationRq" />
+			<output message="tns:GmhsVisitorVerificationRp" />
+		</operation>
+	</portType>
+
+	<binding name="GmhsVVBinding" type="tns:GmhsVVPortTy">
+		<soap:binding style="rpc"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<operation name="verifyGmhsVisitor">
+			<soap:operation soapAction="verifyGmhsVisitor" />
+			<input>
+				<soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:xybase:verifyGmhsVisitor" use="encoded" />
+			</input>
+			<output>
+				<soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+					namespace="urn:xybase:verifyGmhsVisitor" use="encoded" />
+			</output>
+		</operation>
+	</binding>
+
+	<service name="GhmsVVSvc">
+		<documentation>Ground Handler Management System Mock - Visitor
+			Verification
+		</documentation>
+		<port binding="tns:GmhsVVBinding" name="GmhsVVPort">
+			<soap:address
+				location="http://localhost:8080/EaiXystubs/ws/gmhs/VisitorVerification.do" />
+		</port>
+	</service>
+</definitions>

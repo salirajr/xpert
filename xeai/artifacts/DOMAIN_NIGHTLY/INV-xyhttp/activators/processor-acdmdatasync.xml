@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+			http://www.springframework.org/schema/jdbc 
+			http://www.springframework.org/schema/jdbc/spring-jdbc-4.2.xsd
+			http://www.springframework.org/schema/integration/jdbc 
+			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-4.2.xsd">
+	<int:channel id="defaultChannelIn" />
+
+	<int:channel id="defaultChannelOut">
+		<int:queue />
+	</int:channel>
+
+	<bean id="dateUtil" class="com.xybase.ax.eai.archcomp.common.util.DateUtil" />
+
+	<bean id="lookupRmsConnection" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="DATABASE.DEFINITION.CONNECTION.RMS" />
+	</bean>
+
+	<bean id="lookupOdbConnection" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="DATABASE.DEFINITION.CONNECTION.ODB" />
+	</bean>
+
+	<bean id="lookupLocalTimezone" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="LOCAL-TIMEZONE" />
+	</bean>
+
+	<bean id="lookupDtFormat" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="dataLookupDao" factory-method="get">
+		<constructor-arg value="DATETIME.FORMAT" />
+	</bean>
+
+	<bean id="xrmsDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url" value="jdbc:postgresql://192.168.88.90:5432/rms_ckg" />
+		<property name="username" value="postgres" />
+		<property name="password" value="postgres" />
+	</bean>
+
+	<bean id="xodbDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url" value="jdbc:postgresql://192.168.88.90:5432/xodb8" />
+		<property name="username" value="xodb8" />
+		<property name="password" value="xodb8" />
+	</bean>
+
+	<int:chain input-channel="defaultChannelIn">
+		<int:header-enricher>
+			<int:header name="XODB_aircraftVisitSeq" expression="#jsonPath(payload, '$.pairCode')" />
+			<int:header name="RMS_aircraftVisitSeq"
+				expression="#jsonPath(payload, '$.rms_aircraft_visit_seq')" />
+
+			<int:header name="SIBT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.SIBT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+			<int:header name="EIBT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.EIBT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+
+			<int:header name="SOBT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.SOBT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+			<int:header name="TOBT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.TOBT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+
+			<int:header name="ELDT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.ELDT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+			<int:header name="TLDT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.TLDT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+
+			<int:header name="ETOT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.ETOT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+			<int:header name="TTOT"
+				expression="@dateUtil.asString(
+					@dateUtil.format(#jsonPath(payload, '$.TTOT'), 
+						@lookupDtFormat.get('acdmflight')), 
+							@lookupDtFormat.get('archomp-xodb'), 
+								@lookupLocalTimezone.get('zone'))" />
+
+			<int:header name="Endpoint"
+				expression="'dbc://'+ @lookupRmsConnection.get('database-name') +'/'" />
+		</int:header-enricher>
+
+		<int:recipient-list-router>
+			<int:recipient channel="xrmsChannelSync"
+				selector-expression="headers[RMS_aircraftVisitSeq] != -1" />
+			<int:recipient channel="xodbChannelSync" />
+			<int:recipient channel="responseChannelOut" />
+		</int:recipient-list-router>
+	</int:chain>
+
+	<int:channel id="xrmsChannelSync" />
+	<int:chain input-channel="xrmsChannelSync">
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			query="SELECT 
+					COALESCE(max(aircraft_sp_seq), 0) aircraftSPSeq 
+				   FROM rms_aircraft_stand_parking_op 
+				   WHERE aircraft_visit_seq = :headers[RMS_aircraftVisitSeq]" />
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			update="UPDATE rms_aircraft_stand_parking_op 
+					SET schedule_on_block_time = to_timestamp(:headers[SOBT], 'YYYY-MM-DD HH24:MI:SS'),
+						target_off_block_time = to_timestamp(:headers[TOBT], 'YYYY-MM-DD HH24:MI:SS') 
+					WHERE aircraft_visit_seq = :headers[RMS_aircraftVisitSeq]  
+						AND aircraft_sp_seq = :payload[aircraftSPSeq]" />
+		<int:header-enricher default-overwrite="true">
+			<int:header name="aircraftVisitUpdated" expression="payload['UPDATED']" />
+			<int:header name="info"
+				expression="headers['RMS_aircraftVisitSeq']+ '[' +payload['UPDATED']+']'" />
+		</int:header-enricher>
+		<int:transformer
+			expression="@stringUtil.asJson(
+				'aircraft_visit_seq', headers['RMS_aircraftVisitSeq'],
+				'SOBT', headers['SOBT'],
+				'TOBT', headers['TOBT'],
+				'aircraft_visit_updated', headers['aircraftVisitUpdated'],
+				'aircraft_sp_seq', headers['aircraftSPSeq'])" />
+		<int:outbound-channel-adapter ref="defaultLogging"
+			method="audit" />
+	</int:chain>
+
+	<int:channel id="xodbChannelSync" />
+	<int:chain input-channel="xodbChannelSync">
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			query="SELECT * FROM fmm_aircraft_visit WHERE aircraft_visit_seq = :headers[XODB_aircraftVisitSeq]" />
+		<int:header-enricher default-overwrite="true">
+			<int:header name="XODB_afskeyArrival"
+				expression="@transformUtil.ifNullAssigns(payload[afskey_arrival], -1)" />
+			<int:header name="XODB_afskeyDeparture"
+				expression="@transformUtil.ifNullAssigns(payload[afskey_departure], -1)" />
+			<int:header name="Endpoint"
+				expression="'dbc://'+ @lookupOdbConnection.get('database-name') +'/'" />
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			update="UPDATE fmm_flight set 
+						acdm_est_ldto_time = to_timestamp(:headers[ELDT], 'YYYY-MM-DD HH24:MI:SS'), 
+						acdm_target_ldto_time = to_timestamp(:headers[TLDT], 'YYYY-MM-DD HH24:MI:SS') 
+					where afskey = :headers[XODB_afskeyArrival] and leg = 'A' " />
+		<int:header-enricher default-overwrite="true">
+			<int:header name="XODBArrivalSync" expression="payload['UPDATED']" />
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			update="UPDATE fmm_flight set 
+						acdm_est_ldto_time = to_timestamp(:headers[ETOT], 'YYYY-MM-DD HH24:MI:SS'), 
+						acdm_target_ldto_time = to_timestamp(:headers[TTOT], 'YYYY-MM-DD HH24:MI:SS') 
+					where afskey = :headers[XODB_afskeyDeparture] and leg = 'D' " />
+		<int:header-enricher default-overwrite="true">
+			<int:header name="XODBDepartureSync" expression="payload['UPDATED']" />
+			<int:header name="info"
+				expression="headers['XODB_afskeyArrival']+'[' +headers['XODBArrivalSync']+ '], ' +headers['XODB_afskeyDeparture']+'[' +payload['UPDATED']+']'" />
+		</int:header-enricher>
+		<int:transformer
+			expression="@stringUtil.asJson(
+				'aircraft_visit_seq', headers['XODB_aircraftVisitSeq'],
+				'arrival_updated', headers['XODBArrivalSync'],
+				'departure_updated', headers['XODBDepartureSync'],
+				'ELDT', headers['ELDT'],
+				'TLDT', headers['TLDT'],
+				'ETOT', headers['ETOT'],
+				'TTOT', headers['TTOT'],
+				'afskey_arrival', headers['XODB_afskeyArrival'],
+				'afskey_departure', headers['XODB_afskeyDeparture'])" />
+		<int:outbound-channel-adapter ref="defaultLogging"
+			method="audit" />
+	</int:chain>
+
+	<int:channel id="responseChannelOut" />
+	<int:chain input-channel="responseChannelOut" output-channel="defaultChannelOut">
+		<int:transformer expression="@stringUtil.asJson('status', 'PROCESSED')" />
+	</int:chain>
+
+	<bean id="defaultLogging"
+		class="com.xybase.ax.eai.archcomp.handler.audit.DefaultAuditHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="auditLogConfig">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="AcdmDataSync" index="0" />
+				<constructor-arg value="5010" index="1" />
+				<constructor-arg value="1" index="2" />
+			</bean>
+		</property>
+	</bean>
+
+
+</beans>

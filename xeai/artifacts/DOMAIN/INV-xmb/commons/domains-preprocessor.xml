@@ -1,0 +1,67 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+
+	<bean id="uUIDGenerator" class="com.xybase.ax.eai.archcomp.xmb.common.UUIDGenerator" />
+
+	<bean id="stringUtil" class="com.xybase.ax.eai.archcomp.common.util.StringUtil" />
+
+	<bean id="xmbMessageConverter"
+		class="com.xybase.ax.eai.xmb.message.converter.XmbMessageConverter" />
+
+	<bean id="xmBrokerQueue" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="BROKER.QUEUE.NAME" />
+	</bean>
+
+	<bean id="xmbIddEvents" class="com.xybase.ax.eai.archcomp.matrix.Matrix"
+		factory-bean="eventBaseMDaoImpl" factory-method="get">
+		<constructor-arg value="EVENT_NAME" />
+		<constructor-arg value="EjbXmbSubDataPool" />
+		<property name="sets" value="xmbIddEvents" />
+	</bean>
+
+	<bean id="messageSelectorFactory"
+		class="com.xybase.ax.eai.archcomp.message.selector.factory.MessageSelectorImplFactory">
+		<property name="selectorDaoImpl" ref="dataSelectorDao" />
+	</bean>
+
+	<!-- add by azis -->
+	<bean id="messageSelector"
+		class="com.xybase.ax.eai.archcomp.message.selector.MessageSelectorImpl"
+		factory-bean="messageSelectorFactory" factory-method="createNewMessageSelector">
+		<constructor-arg value="2000" />
+		<constructor-arg>
+			<array>
+				<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+					factory-bean="dataLookupDao" factory-method="get">
+					<constructor-arg value="XMBMESSAGE.VERSION" />
+					<property name="sets" value="xmbVersion" />
+				</bean>
+				<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+					factory-bean="dataLookupDao" factory-method="get">
+					<constructor-arg value="XMBMESSAGE.TEXT.LENGTH" />
+					<property name="sets" value="xmbLength" />
+				</bean>
+				<ref bean="stringUtil" />
+				<ref bean="xmbIddEvents" />
+			</array>
+		</constructor-arg>
+	</bean>
+
+	<bean id="defaultBrokerDefinition" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="BROKER.DEFINITION.DEFAULT" />
+	</bean>
+
+	<bean id="xmbTextMessageConverter"
+		class="com.xybase.ax.eai.xmb.message.converter.XmbTextMessageConverter" />
+
+	<bean id="messageBridge" class="com.xybase.ax.eai.archcomp.message.bridge.MessageBridge">
+		<constructor-arg value="repressorChannel" />
+	</bean>
+
+
+</beans>

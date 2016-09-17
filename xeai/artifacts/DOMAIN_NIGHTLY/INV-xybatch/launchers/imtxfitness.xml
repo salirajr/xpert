@@ -1,0 +1,494 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="qInboundMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select
+				   cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   source_reference.source,
+				   cast('INBOUND-MESSAGE' as varchar) audit_set,
+				   cast('IMB-TX' as varchar) audit_tx,
+				   CASE WHEN transaction_state.state is NULL THEN 0 ELSE transaction_state.state  END as state
+				from
+				   (select
+				      split_part(audit_param,
+				      ': ',
+				      2) as source,
+				      count(1) state
+				   from
+				      xeai_audit_log 
+				   where
+				      audit_type in (
+				         'EjbRequest-In', 'WsRequest-In'
+				      )
+				      and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+				   group by
+				      audit_param,
+				      audit_type) transaction_state 
+				right join
+				   (
+				      select
+				         unnest(string_to_array('ACDM,AMS,GM,RMS,IICS,ODB,FSM', ',')) as source
+				   ) source_reference 
+				      on transaction_state.source = source_reference.source
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qOutboundMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select
+				   cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   source_reference.source,
+				   cast('OUTBOUND-MESSAGE' as varchar) audit_set,
+				   cast('IMB-TX' as varchar) audit_tx,
+				   CASE WHEN transaction_state.state is NULL THEN 0 ELSE transaction_state.state  END as state
+				from
+				   (select
+				      split_part(audit_param,
+				      ': ',
+				      2) as source,
+				      count(1) state
+				   from
+				      xeai_audit_log 
+				   where
+				      audit_type in (
+				         'EjbRequest-Out'
+				      )
+				      and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+				   group by
+				      audit_param,
+				      audit_type) transaction_state 
+				right join
+				   (
+				      select
+				         unnest(string_to_array('ACDM,AMS,GM,RMS,IICS,ODB,FSM', ',')) as source
+				   ) source_reference 
+				      on transaction_state.source = source_reference.source
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qInboundFailedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select
+				   cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   source_reference.source,
+				   cast('INBOUND-FAILED-MESSAGE' as varchar) audit_set,
+				   cast('IMB-TX' as varchar) audit_tx,
+				   CASE WHEN transaction_state.state is NULL THEN 0 ELSE transaction_state.state  END as state
+				from
+				   (select
+				      split_part(audit_param,
+				      ': ',
+				      2) as source,
+				      count(1) state
+				   from
+				      xeai_audit_log 
+				   where
+				      audit_type in (
+				         'EjbRequest-In', 'WsRequest-In'
+				      )
+				      and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+				      and severity is not null
+				   group by
+				      audit_param,
+				      audit_type) transaction_state 
+				right join
+				   (
+				      select
+				         unnest(string_to_array('ACDM,AMS,GM,RMS,IICS,ODB,FSM', ',')) as source
+				   ) source_reference 
+				      on transaction_state.source = source_reference.source
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qOutboundFailedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select
+				   cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   source_reference.source,
+				   cast('OUTBOUND-FAILED-MESSAGE' as varchar) audit_set,
+				   cast('IMB-TX' as varchar) audit_tx,
+				   CASE WHEN transaction_state.state is NULL THEN 0 ELSE transaction_state.state  END as state
+				from
+				   (select
+					   split_part(xael.endpoint,
+					   '-',
+					   2) as source,
+					   count(1) state 
+					from
+					   xeai_audit_error_log xael 
+					join
+					   xeai_audit_log xal 
+					      on xael.xeai_id = xal.xeai_id 
+					where
+					   xal.audit_type = 'EjbRequest-In'
+					and xael.audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+					group by
+					   xael.endpoint) transaction_state 
+				right join
+				   (
+				      select
+				         unnest(string_to_array('ACDM,AMS,GM,RMS,IICS,ODB,FSM', ',')) as source
+				   ) source_reference 
+				      on transaction_state.source = source_reference.source
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<!-- COMMON TRANSACTION -->
+
+	<bean id="qGenericInboundMessage" 
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('REQUEST-IN' as varchar) source,
+					cast('INBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_log 
+					where
+					   audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-In'
+					   ) and 
+					   audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qGenericOutboundMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('REQUEST-OUT' as varchar) source,
+					cast('OUTBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_log 
+					where
+					   audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-Out'
+					   ) and 
+					   audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qGenericInboundFailedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('FAILED-REQUEST-IN' as varchar) source,
+					cast('INBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_log 
+					where
+					   audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-In'
+					   ) 
+					   and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+					   and severity is not null
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qGenericOutboundFailedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('FAILED-REQUEST-OUT' as varchar) source,
+					cast('OUTBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_error_log xael 
+					join
+					   xeai_audit_log xal 
+					      on xael.xeai_id = xal.xeai_id 
+					where
+					   xal.audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-Out'
+					   ) 
+					and xael.audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="qGenericRecoveryRequiredOutboundFailedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('FAILED-TOP-PRIOR-REQUEST-OUT' as varchar) source,
+					cast('OUTBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_error_log xael 
+					join
+					   xeai_audit_log xal 
+					      on xael.xeai_id = xal.xeai_id 
+					where
+						xal.audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-Out'
+					   	)
+					   	and xal.event_name in (
+					   		select event_name from xeai_event where prior_pipeline in (1, 2)
+					   	) 
+						and xael.audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+	
+	<bean id="qGenericInboundUnknownMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('FAILED-UNIDENTIFIED-REQUEST-IN' as varchar) source,
+					cast('INBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_log 
+					where
+					   audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-In'
+					   )
+					   and event_name = 'UnidentifiedEvent'
+					   and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+	
+	<bean id="qGenericInboundExpectedMessage"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[
+				select             
+					cast('#{@launcherDetail.getCronSchedule()}' as varchar) audit_crons,
+				   	cast('FAILED-IDENTIFIED-REQUEST-IN' as varchar) source,
+					cast('INBOUND-MESSAGE' as varchar) audit_set,
+					cast('IM-TX' as varchar) audit_tx,
+					count(1) state
+					from
+					   xeai_audit_log 
+					where
+					   audit_type in (
+							select distinct audit_type from xeai_audit_log_config where audit_type like '%Request-In'
+					   ) 
+					   and audit_time between to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS') and to_timestamp('#{jobParameters[adjustedBTime]}','DD-MM-YYYY HH24:MI:SS')
+					   and event_name != 'UnidentifiedEvent'
+					   and severity is not null
+			]]></value>
+		</property>
+		<property name="rowMapper">
+			<bean class="com.xybase.ax.eai.xybatch.rowmapper.MapRowMapperImpl" />
+		</property>
+	</bean>
+
+	<bean id="transactionStateJdbcIWriter"
+		class="org.springframework.batch.item.database.JdbcBatchItemWriter"
+		scope="step">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="sql">
+			<value><![CDATA[        
+            	INSERT INTO audit.xeai_audit_transaction_state(
+		            audit_end, 
+		            audit_start, 
+		            audit_set, 
+		            audit_identifier, 
+		            audit_state, 
+		            audit_transaction,
+		            audit_crons)
+			    VALUES (
+				    to_timestamp('#{jobParameters[adjustedBTime]}','MM-DD-YYYY HH24:MI:SS'),
+				    to_timestamp('#{jobParameters[previousBTime]}','MM-DD-YYYY HH24:MI:SS.SSS'),
+				    :audit_set,
+				    :source, 
+				    :state, 
+				    :audit_tx, 
+				    :audit_crons)
+            ]]></value>
+		</property>
+		<!-- It will take care matching between object property and sql name parameter -->
+		<property name="itemSqlParameterSourceProvider">
+			<bean
+				class="org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider" />
+		</property>
+	</bean>
+
+	<bean id="mapPrintProcessorConsole"
+		class="com.xybase.ax.eai.xybatch.mockitem.MapPrintProcessorConsole" />
+	<bean id="transformUtil" class="com.xybase.ax.eai.archcomp.common.util.TransformUtil"
+		scope="step" />
+
+
+	<batch:job id="imTxFitness">
+		<batch:step id="inboundMsg" next="outboundMsg">
+			<batch:tasklet>
+				<batch:chunk reader="qInboundMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="outboundMsg" next="outboundFailedMsg">
+			<batch:tasklet>
+				<batch:chunk reader="qOutboundMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="outboundFailedMsg" next="inboundFailedMsg">
+			<batch:tasklet>
+				<batch:chunk reader="qOutboundFailedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="inboundFailedMsg" next="genericInboundMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qInboundFailedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="genericInboundMessage" next="genericOutboundMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericInboundMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericOutboundMessage" next="genericInboundFailedMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericOutboundMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericInboundFailedMessage" next="genericOutboundFailedMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericInboundFailedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericOutboundFailedMessage" next="genericRecoveryRequiredOutboundFailedMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericOutboundFailedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericRecoveryRequiredOutboundFailedMessage" next="genericInboundUnknownMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericRecoveryRequiredOutboundFailedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericInboundUnknownMessage" next="genericInboundExpectedMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericInboundUnknownMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="genericInboundExpectedMessage">
+			<batch:tasklet>
+				<batch:chunk reader="qGenericInboundExpectedMessage" writer="transactionStateJdbcIWriter"
+					processor="mapPrintProcessorConsole" commit-interval="1">
+				</batch:chunk>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+	<bean id="launcherDetail"
+		class="com.xybase.ax.eai.xybatch.launcher.detail.LauncherDetail">
+		<property name="cronSchedule" value="0 0/2 * 1/1 * ? *" /> <!-- 0 0/15 * * * ? -->
+		<property name="xparVariable" value="true" />
+	</bean>
+
+</beans>

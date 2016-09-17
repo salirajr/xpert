@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<!-- <link href="../../../ui/css/events_style.css"
+	th:href="@{/ui/css/events_style.css}" rel="stylesheet"></link> -->
+<link href="../../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+<link href="../../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+</head>
+
+<body>
+	<div layout:fragment="main-content">
+		<div class="panel">
+			<div class="panel-heading">
+				<div class="panel-options">
+					<ul class="nav nav-tabs norm">
+						<li class="active"><a data-toggle="tab" href="#tab-1">DOMAIN</a></li>
+						<li class=""><a data-toggle="tab" href="#tab-2"> Context</a></li>
+						<li class=""><a data-toggle="tab" href="#tab-3">
+								Components</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="panel-body">
+
+				<div class="tab-content">
+					<div id="tab-1" class="tab-pane active">
+						<div class="col-md-3 b-r">
+							<div class="scrollable">
+								<div id="msgtools-jtree"></div>
+							</div>
+						</div>
+						<div class="col-sm-9">
+							<div class="input-group m-b">
+								<span class="input-group-addon ">Context: </span> <input
+									id="context-file" type="text" class="form-control"></input>
+							</div>
+							<pre id="domain-editor"></pre>
+						</div>
+					</div>
+
+					<div id="tab-2" class="tab-pane">
+						<div class="row">
+							<div class="col-sm-3 b-r">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+
+												<th>#</th>
+												<th>Flow</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>1</td>
+												<td><a>Repressor/Processor</a></td>
+											</tr>
+											<tr>
+												<td>2</td>
+												<td><a>Binder Repressor/Distributor</a></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+
+												<th>#</th>
+												<th>Context File</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>1</td>
+												<td><a>Repressor/Processor</a></td>
+											</tr>
+											<tr>
+												<td>2</td>
+												<td><a>Binder Repressor/Distributor</a></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-5 b-r">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+
+												<th>#</th>
+												<th>File</th>
+												<th>Alias</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>1</td>
+												<td><a>xmbRepressor-binder-dao.xml</a></td>
+												<td><a>DAO</a></td>
+											</tr>
+											<tr>
+												<td>2</td>
+												<td><a>xmbRepressor-binder-domains.xml</a></td>
+												<td><a>DOMAINS</a></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-2 b-r">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+
+												<th>#</th>
+												<th>Base Bus</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>1</td>
+												<td><a>xmbIddEvents</a></td>
+											</tr>
+											<tr>
+												<td>2</td>
+												<td><a>xmBrokerQueue</a></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-2 b-r">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+
+												<th>#</th>
+												<th>Binder Bus</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>1</td>
+												<td><a>messageAdapter</a></td>
+											</tr>
+											<tr>
+												<td>2</td>
+												<td><a>xmbEjbISender</a></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-sm-9">
+								<div class="input-group m-b">
+									<span class="input-group-addon ">Context: </span> <input
+										id="context-file" type="text" class="form-control"></input>
+								</div>
+								<pre id="context-editor"></pre>
+							</div>
+						</div>
+					</div>
+
+					<div id="tab-3" class="tab-pane">
+						<div class="col-sm-3 b-r">
+							<div class="table-responsive">
+								<table class="table table-striped">
+									<thead>
+										<tr>
+
+											<th>#</th>
+											<th>Group</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>1</td>
+											<td><a>Spring-Integration-Gateway</a></td>
+										</tr>
+										<tr>
+											<td>2</td>
+											<td><a>Service-Repressor</a></td>
+										</tr>
+										<tr>
+											<td>3</td>
+											<td><a>Service-Binder-Repressor</a></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div class="col-sm-9">
+							<table id="service-components"
+								class="table table-striped table-bordered table-hover dataTables-example">
+								<thead>
+									<tr>
+										<th>Bus Name</th>
+										<th>Level</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="gradeX">
+										<td>AxpertPRIORDataXchanges</td>
+										<td>y</td>
+									</tr>
+									<tr class="gradeX">
+										<td>AxpertXPOSTDXXML</td>
+										<td>x</td>
+									</tr>
+
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<!-- JSTREE -->
+		<script src="../../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+
+		<!-- Ace Editor -->
+		<script src="../../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+
+		<!-- Nestable List -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/nestable/jquery.nestable.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/nestable/jquery.nestable.js}"></script>
+
+		<script src="../../ui/js/businessflaction_script.js"
+			th:src="@{/ui/js/businessflaction_script.js}"></script>
+
+
+	</div>
+
+
+</body>
+
+</html>

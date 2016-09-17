@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<bean id="wireService-coop" class="com.ptxti.concept.ruleengine.wire.AxreWireService">
+		<property name="factsMapper" ref="factsMapper-coop" />
+		<property name="knowledgeSession" ref="coopSession" />
+		<property name="operationName" value="carousel-operation" />
+	</bean>
+
+	<bean id="factsMapper-coop" class="com.ptxti.concept.ruleengine.mapper.DomFactsMapper">
+		<property name="facts" ref="resultMap-extraction-coop" />
+		<property name="resultMap" ref="resultMap-injection-coop" />
+		<property name="template"
+			value="ns1:executeCarouselOpRuleResponse xmlns:ns1='urn:EIservices' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' soapenv:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'" />
+	</bean>
+
+	<bean id="resultMap-extraction-coop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="in0" value="/ns1:executeCarouselOpRule/in0" />
+				<entry key="in1" value="/ns1:executeCarouselOpRule/in1" />
+				<entry key="in2" value="/ns1:executeCarouselOpRule/in2" />
+				<entry key="in3" value="/ns1:executeCarouselOpRule/in3" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="resultMap-injection-coop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="return"
+					value="/ns1:executeCarouselOpRuleResponse/executeCarouselOpRuleReturn" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+</beans>

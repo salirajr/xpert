@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<bean id="wireService-sdpl" class="com.ptxti.concept.ruleengine.wire.AxreWireService">
+		<property name="factsMapper" ref="factsMapper-sdpl" />
+		<property name="knowledgeSession" ref="sdplSession" />
+		<property name="operationName" value="stand-planning" />
+	</bean>
+
+	<bean id="factsMapper-sdpl" class="com.ptxti.concept.ruleengine.mapper.DomFactsMapper">
+		<property name="facts" ref="resultMap-extraction-sdpl" />
+		<property name="resultMap" ref="resultMap-injection-sdpl" />
+		<property name="template"
+			value="ns1:executeStandPlRuleResponse xmlns:ns1='urn:EIservices' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' soapenv:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'" />
+	</bean>
+
+	<bean id="resultMap-extraction-sdpl" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="in0" value="/ns1:executeStandPlRule/in0" />
+				<entry key="in1" value="/ns1:executeStandPlRule/in1" />
+				<entry key="in2" value="/ns1:executeStandPlRule/in2" />
+				<entry key="in3" value="/ns1:executeStandPlRule/in3" />
+				<entry key="in4" value="/ns1:executeStandPlRule/in4" />
+				<entry key="in5" value="/ns1:executeStandPlRule/in5" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="resultMap-injection-sdpl" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="return"
+					value="/ns1:executeStandPlRuleResponse/executeStandPlRuleReturn" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+</beans>

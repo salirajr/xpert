@@ -1,0 +1,74 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.coop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.StringUtil.CustomRegex
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+function EphemeralMantle initiation(EphemeralMantle em, 
+	DecisionTable decisionTable){
+
+	decisionTable.relace("_xdt_coop_nonservicetype");
+	em.facts.putList("nonServicetypeList", StringUtil.toList(decisionTable.laced().get("LISTVALUE"), 
+			StringUtil.CustomRegex.COMMA));
+	em.facts.put("return","NoAccomodationAvailable");
+	return em;
+}
+
+
+rule "initiation-calibration:initiated-phase"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "0000000", 
+        		round == 0
+    			)
+    then
+    	$em = initiation($em, decisionTable);
+    	$em.logs("initiated");
+    	String eta = DateUtil.toString(
+    		StringUtil.toTimestamp($em.facts.get("in0"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss");
+    	$em.facts.put("in0", eta);
+    	$em.facts.remap("in0","_eta");
+    	$em.facts.remap("in1","_terminalCode");
+    	$em.facts.remap("in2","_type");
+    	$em.facts.remap("in3","_rmsKey");
+    	$em.setPhase("initiation-calibration:input-validity-check");
+    	update( $em );
+end
+
+rule "initiation-calibration:is-nonservicetype-operation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "calibration:prime-logs", 
+        		facts.getList("nonServicetypeList").contains(facts.get("_type")),
+    				round == 1
+    			)
+    then
+    	$em.setPhase("initiation-calibration:is-nonservicetype-operation");
+    	$em.logs("INF - NONSERVICETYPE-OPERATION");
+end
+
+rule "calibration:prime-logs"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "calibration:prime-logs", 
+    			!facts.getList("nonServicetypeList").contains(facts.get("_type")),
+    				round == 1
+    			)
+    then
+    	$em.setPhase("allocation-validity");
+    	update( $em );
+ end

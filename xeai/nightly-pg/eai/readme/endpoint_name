@@ -1,0 +1,20 @@
+headers[XeaiCores]
+[Endpoint Module].[Protocol Type].[Integration Type].XEAI.[version] 
+[Endpoint Module]
+	.0 : EaiXyStub
+	.1 : EaiXyHttp
+	.3 : EaiXmb
+[Protocol Type]
+	.1 : HTTP
+	.2 : EJB
+[Integration Type]
+	.1 : Asynchronous
+	.2 : Synchronous
+[version]
+	.1 = 1
+	.2 = 2
+	
+	
+
+eg: 1.1.2.XEAI.1 : EaiXyHttp.HTTP.Synchronous.XEAI.1 
+	1.1.2.XEAI.1.1.1 : EaiXyHttp.HTTP.Synchronous.XEAI.1.JSON.AIDX

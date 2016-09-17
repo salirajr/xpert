@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/ejb-jar_2_1.xsd"
+	version="2.1">
+	<display-name>XeaiMB Server Enterprise JavaBean</display-name>
+	<enterprise-beans>
+		<session>
+			<display-name>XeaiMBSystemServer Session Bean</display-name>
+			<ejb-name>XeaiMBSystemServer</ejb-name>
+			<home>com.xybase.xmb.xss.XMBSystemServerHome</home>
+			<remote>com.xybase.xmb.xss.XMBSystemServer</remote>
+			<ejb-class>com.xybase.ax.eai.xystub.xmb.XeaiMBSystemServer
+			</ejb-class>
+			<session-type>Stateless</session-type>
+			<transaction-type>Container</transaction-type>
+		</session>
+		<session>
+			<display-name>Receiver Session Bean</display-name>
+			<ejb-name>XeaiMBMessageServer</ejb-name>
+			<home>com.xybase.xmb.xms.XMBMessageServerHome</home>
+			<remote>com.xybase.xmb.xms.XMBMessageServer</remote>
+			<ejb-class>com.xybase.ax.eai.xystub.xmb.XeaiMBMessageServer
+			</ejb-class>
+			<session-type>Stateless</session-type>
+			<transaction-type>Container</transaction-type>
+		</session>
+	</enterprise-beans>
+
+	<assembly-descriptor>
+		<container-transaction>
+			<method>
+				<ejb-name>XeaiMBSystemServer</ejb-name>
+				<method-name>*</method-name>
+			</method>
+			<trans-attribute>Required</trans-attribute>
+		</container-transaction>
+		<container-transaction>
+			<method>
+				<ejb-name>XeaiMBMessageServer</ejb-name>
+				<method-name>*</method-name>
+			</method>
+			<trans-attribute>Required</trans-attribute>
+		</container-transaction>
+	</assembly-descriptor>
+</ejb-jar>

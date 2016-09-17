@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.2.xsd http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms">
+
+	<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="#{@xmBrokerQueue.get('AXPERT-IICS')}" />
+	</bean>
+
+	<bean id="defaultMessageListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+		destroy-method="destroy">
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+		<property name="destination" ref="queue" />
+		<property name="sessionTransacted" value="true" />
+	</bean>
+
+	<int-jms:message-driven-channel-adapter
+		id="messageAdapter" error-channel="errorHandler" channel="defaultChannelIn"
+		container="defaultMessageListenerContainer" message-converter="xmbTextMessageConverter" />
+
+	<int:channel id="defaultChannelIn" />
+
+	<int:outbound-channel-adapter id="xmbEjbISenderAdapter"
+		channel="defaultChannelIn" ref="xmbEjbISender" method="dispatch" />
+
+	<bean id="xmbEjbISender" class="com.xybase.ax.eai.archcomp.xmb.sender.XmbEjbISender">
+		<constructor-arg>
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="archLookupDao" factory-method="get">
+				<constructor-arg value="EJB.DEFINITION.XMBEJBASENDER.AXPERT.IICS" />
+			</bean>
+		</constructor-arg>
+		<property name="auditDao" ref="auditLogDao" />
+		<property name="auditConfig">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="EjbXmbSubDataPool" index="0" />
+				<constructor-arg value="2000" index="1" />
+				<constructor-arg value="1" index="2" />
+			</bean>
+		</property>
+		<property name="controlOut" ref="controlChannelIn" />
+		<property name="tryOut" value="5" />
+		<property name="failedOvers">
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map key-type="java.lang.String" value-type="java.lang.String">
+						<entry key="JMSSTOP" value="@messageAdapter.stop()" />
+						<entry key="JMSSTART" value="@messageAdapter.start()" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+
+</beans>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="stubDao" class="com.xybase.ax.eai.xystub.stub.dao.StubDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select stub_rpo, stub_type from xeai_stub where ? like '%'||stub_rqi||'%'"></property>
+	</bean>
+
+</beans>

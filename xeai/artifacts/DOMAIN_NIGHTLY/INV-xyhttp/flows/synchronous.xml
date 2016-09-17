@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+	<int:service-activator id="saPprocessorSynchronous"
+		input-channel="defaultChannelIn-sync" ref="pprocessorSynchronous"
+		output-channel="channelProcessor-sync" method="activate">
+	</int:service-activator>
+
+	<bean id="pprocessorSynchronous"
+		class="com.xybase.ax.eai.archcomp.servicebinder.ActivatorBinderImpl">
+		<property name="binderKey" value="PREPROCESSOR" />
+		<property name="baseCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.larik.Larik"
+				factory-bean="contextLarikDao" factory-method="get">
+				<constructor-arg value="IMHTTP, PPCRSF" />
+			</bean>
+		</property>
+		<property name="lCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="contextLookupDao" factory-method="get">
+				<constructor-arg value="IMHTTP, PPCRSF" />
+			</bean>
+		</property>
+	</bean>
+
+	<int:channel id="channelProcessor-sync" />
+
+	<int:service-activator id="saProcessorSynchronous"
+		input-channel="channelProcessor-sync" ref="processorSynchronous"
+		method="activate">
+	</int:service-activator>
+
+	<bean id="processorSynchronous"
+		class="com.xybase.ax.eai.archcomp.servicebinder.ActivatorBinderImpl">
+		<property name="binderKey" value="XeaiEventID" />
+		<property name="baseCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.larik.Larik"
+				factory-bean="contextLarikDao" factory-method="get">
+				<constructor-arg value="IMHTTP, PCRSF" />
+			</bean>
+		</property>
+		<property name="lCtxResources">
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="contextLookupDao" factory-method="get">
+				<constructor-arg value="IMHTTP, PCRSF" />
+			</bean>
+		</property>
+	</bean>
+
+</beans>

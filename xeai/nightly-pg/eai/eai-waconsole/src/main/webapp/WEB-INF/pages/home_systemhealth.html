@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/chosen/chosen.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/chosen/chosen.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/system_style.css"
+	th:href="@{/ui/css/system_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">SYSTEM TRANSACTION HEALTH
+		MONITORS</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="btn-refresh">
+			<i class="fa fa-refresh"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="ClearQuery" id="clear-query">
+			<i class="fa fa-close"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default">
+			<div class="panel-heading"></div>
+			<div class="panel-body">
+				<h4>Real-time Processing Fitness</h4>
+				<br />
+				<div class="flot-chart">
+					<div class="flot-chart-content" id="flot-line-chart-multi"></div>
+				</div>
+				<small class="pull-right">Last update on 17-12-2015 00:40:00</small>
+
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading"></div>
+			<div class="panel-body">
+
+				<div class="col-lg-2">
+					<h4>Queue Processing</h4>
+					<br />
+					<div>
+
+						<div>
+							<span>FMMxpert</span> <small class="pull-right">20</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 85%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>RMSxpert</span> <small class="pull-right">120</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 50%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>AMSxpert</span> <small class="pull-right">70</small>
+						</div>
+						<div class="progress progress-small">
+							<div style="width: 40%;" class="progress-bar"></div>
+						</div>
+
+						<div>
+							<span>CMSxpert</span> <small class="pull-right">50</small>
+						</div>
+
+						<div class="progress progress-small">
+							<div style="width: 20%;" class="progress-bar progress-bar-danger"></div>
+						</div>
+						<div>
+							<span>FIDSxpert</span> <small class="pull-right">1120</small>
+						</div>
+
+						<div class="progress progress-small">
+							<div style="width: 20%;" class="progress-bar progress-bar-danger"></div>
+						</div>
+					</div>
+
+				</div>
+				<div class="col-lg-4 b-l">
+					<h4>Real-time Processing Fitness</h4>
+					<br />
+					<canvas id="doughnutChart"></canvas>
+				</div>
+				<div class="col-lg-6">
+					<small class="pull-right">Last update on 17-12-2015
+						00:40:00</small> <br />
+					<br />
+					<div>
+						<table class="table">
+							<tbody>
+								<tr>
+									<td>
+										<button type="button" class="btn btn-info ">3100</button> <br />
+										Inbound Message
+									</td>
+									<td>
+										<button type="button" class="btn btn-danger">490</button> <br />Failed
+										Message
+									</td>
+
+									<td>
+										<button type="button" class="btn btn-warning">400</button> <br />Invalid
+										Message
+									</td>
+
+								</tr>
+								<tr>
+									<td>
+										<button type="button" class="btn btn-primary">1010</button> <br />Message
+										Processed
+									</td>
+									<td>
+										<button type="button" class="btn btn-danger">40</button> <br />
+										Required Recovery
+									</td>
+									<td>
+										<button type="button" class="btn btn-warning">80</button> <br />
+										Unidentified Message
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<button type="button" class="btn btn-default">30</button> <br />Message
+										Queued
+									</td>
+									<td />
+									<td>
+										<button type="button" class="btn btn-warning">50</button> <br />
+										Identified Message
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+
+		<!-- Flot -->
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.pie.js}"></script>
+
+		<!-- Custom and plugin javascript -->
+		<script src="../../ui/ui-bootstrap/js/inspinia.js"
+			th:src="@{/ui/ui-bootstrap/js/inspinia.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/pace/pace.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/pace/pace.min.js}"></script>
+
+		<!-- ChartJS-->
+		<script src="../../ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chartJs/Chart.min.js}"></script>
+
+		<!-- Flot -->
+		<script src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.tooltip.min.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.resize.js}"></script>
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/flot/jquery.flot.time.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/flot/jquery.flot.time.js}"></script>
+
+		<!-- Chosen -->
+		<script src="../../ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js}"></script>
+
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/syshealth_script.js"
+			th:src="@{/ui/js/syshealth_script.js}"></script>
+	</div>
+</body>
+
+</html>

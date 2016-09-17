@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.2.xsd http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd "
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+	<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="#{@xmBrokerQueue.get('AXPERT-ODB')}" />
+	</bean>
+
+	<bean id="defaultMessageListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+		destroy-method="destroy">
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+		<property name="destination" ref="queue" />
+		<property name="sessionTransacted" value="true" />
+	</bean>
+
+	<int-jms:message-driven-channel-adapter
+		id="messageAdapter" error-channel="errorHandler" channel="defaultChannelIn"
+		container="defaultMessageListenerContainer" message-converter="xmbTextMessageConverter" />
+
+	<int:channel id="defaultChannelIn" />
+	
+	<int:chain input-channel="defaultChannelIn">
+		<int:transformer ref="xmbMessageUtil" method="toSoap" />
+		<int-http:outbound-gateway
+			url="http://192.168.88.91:8/receiver_odb/receiver-post.do"
+			http-method="POST" expected-response-type="java.lang.String" />
+		<int:outbound-channel-adapter method="audit"
+			ref="defaultAuditHandler" />
+	</int:chain>
+
+</beans>

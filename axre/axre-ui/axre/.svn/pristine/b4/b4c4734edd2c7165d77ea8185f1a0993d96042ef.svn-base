@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/decorator">
+<head layout:fragment="def-head">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Airport | Xpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	rel="stylesheet" th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	rel="stylesheet"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css" rel="stylesheet"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}"></link>
+
+<link href="../../ui/ui-bootstrap/css/style.css" rel="stylesheet"
+	th:href="@{/ui/ui-bootstrap/css/style.css}"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/css/calibration.css"
+	th:href="@{/ui/css/calibration.css}" rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content">
+
+						<strong>Lorem Ipsum</strong> is simply dummy text of the printing
+						and typesetting industry. Lorem Ipsum has been the industry's
+						standard dummy text ever since the 1500s, when an unknown printer
+						took a galley of type and scrambled it to make a type specimen
+						book. It has survived not only five centuries, but also the leap
+						into electronic typesetting, remaining essentially unchanged. It
+						was popularised in the 1960s with the release of Letraset sheets
+						containing Lorem Ipsum passages, and more recently with desktop
+						publishing software like Aldus PageMaker including versions of
+						Lorem Ipsum.
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-8">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>RMS References of Parameter from RMS DB</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<table id="rms-parameters"
+							class="table table-striped table-bordered table-hover dataTables-example">
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Description</th>
+									<th>Value</th>
+								</tr>
+							</thead>
+							<tbody>
+
+							</tbody>
+						</table>
+
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="add-js">
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<script src="../../ui/js/rms_calibration.js"
+			th:src="@{/ui/js/rms_calibration.js}"></script>
+	</div>
+</body>
+
+</html>

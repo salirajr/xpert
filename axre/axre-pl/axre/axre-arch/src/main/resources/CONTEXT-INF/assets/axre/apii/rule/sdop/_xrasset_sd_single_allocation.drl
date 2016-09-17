@@ -1,0 +1,338 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.model.EphemeralFact 
+import com.concept.ruleengine.model.EphemeralFactType
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.dt.model.DecisionTable
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.StringUtil.CustomRegex
+
+import java.sql.Timestamp
+import java.util.Map
+import java.util.Date
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function int funcGetDayOfWeek(Date date) {
+	int dayOfWeek = DateUtil.getDayOfWeek(date);
+	return dayOfWeek == 0 ? 7 : dayOfWeek;
+}
+
+function EphemeralMantle initiationSingleAllocation(EphemeralMantle em, 
+	DecisionTable decisionTable, QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("return","NoAllocationAvailable");
+	
+	mapper.relace("_sqlmap_sd","extract_rmsoperationinfo");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	Map map = reference.getMap(mapper.getQuery());
+	
+	em.facts.put("_serviceType",map.get("iata_service_type_code"));
+	em.facts.put("_categoryCode",map.get("category_code"));
+	em.facts.put("_aircraftType",map.get("aircraft_type"));
+	em.facts.put("_terminalCode",map.get("terminal_code"));
+	em.facts.put("_airlineCode",map.get("airline_code"));
+	em.facts.put("_eta",map.get("est_on_block_time"));
+	em.facts.put("_etd",map.get("est_off_block_time")); 
+	em.facts.put("_rmsKeyD",map.get("rmskey_departure"));
+	em.facts.put("_rmsKeyA",map.get("rmskey_arrival"));
+	em.facts.put("_spSeq",map.get("aircraft_sp_seq"));
+	
+	Date dateStad = 
+		StringUtil.toTimestamp(em.facts.get("_eta"), 
+			"yyyy-MM-dd HH:mm:ss");
+	em.facts.put("dayOfWeek", funcGetDayOfWeek(dateStad));
+	
+	decisionTable.relace("_xdt_sdop_cargoflight");
+	em.logs("_serviceType of['"+em.facts.get("_visitSeq")+"']:"+em.facts.get("_serviceType"));
+	if(
+		StringUtil.toList(decisionTable.laced().get("LISTVALUE"), 
+			StringUtil.CustomRegex.COMMA).contains(em.facts.get("_serviceType"))){
+		decisionTable.relace("_xdt_sdop_cargoflightstand");
+		em.logs("_serviceType of['"+em.facts.get("_visitSeq")+"'] is a Cargo Flight");
+	}else{
+		decisionTable.relace("_xdt_sdop_flightstand");
+	}
+	decisionTable.set("DAYOFWEEK", em.facts.get("dayOfWeek"));
+	decisionTable.set("AIRLINECODE", em.facts.get("_airlineCode"));
+	decisionTable.set("CATEGORYCODE", em.facts.get("_categoryCode"));	
+	decisionTable.laced();
+	String preferedStand = decisionTable.get("PREFEREDSTAND");
+	if(StringUtil.isNullOrBlank(preferedStand))
+		preferedStand = decisionTable.getNVL("PREFEREDSTAND");
+		
+	em.logs("Reconciliated on "+preferedStand);
+	
+	em.facts.putList("standList", StringUtil.toList(preferedStand, 
+		StringUtil.CustomRegex.COMMA));
+	em.facts.put("standList:i", 0);
+	return em;
+}
+
+function EphemeralMantle initiationAvailabilityAllocation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for availability!");
+	
+	mapper.relace("_sqlmap_sd","retrieve_standconflictoperation");
+	
+	mapper.parameterized("STAND_CODE", em.facts.get("stand:i") );
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq") );
+	Timestamp estOnBlockTime = StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss");
+	
+	mapper.parameterized(
+		"EST_ON_BLOCK_TIME_WITH_TIMEBUFFER", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(estOnBlockTime, em.facts.getInt("timeBuffer"), -1), 
+					"yyyy-MM-dd HH:mm:ss"));
+					
+	Timestamp estOffBlockTime = StringUtil.toTimestamp(em.facts.get("_etd"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"EST_OFF_BLOCK_TIME_WITH_TIMEBUFFER", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(estOffBlockTime, em.facts.getInt("timeBuffer")), 
+					"yyyy-MM-dd HH:mm:ss"));
+	
+	em.facts.putMap("standconflictoperation", reference.getMap(mapper.getQuery()));
+
+	return em;
+}
+
+function EphemeralMantle initiationOperabilityAllocation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("isOperable",false);
+	em.logs("alocation-validity:initiated for operability!");
+	
+	mapper.relace("_sqlmap_sd","retrieve_standinoperation");
+	mapper.parameterized("STAND_CODE", em.facts.get("stand:i") );
+	mapper.parameterized(
+		"INOP_START_TIME", em.facts.get("_eta"));
+	mapper.parameterized(
+		"INOP_END_TIME", em.facts.get("_etd"));
+	
+	em.facts.put("standinoperation", reference.get(mapper.getQuery()));
+	return em;	
+}
+
+function EphemeralMantle initiationFitnessAllocation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("isStandFitness", 
+		isWingConstraints(
+			em.facts.get("stand:i"), em.facts.get("_aircraftType"), mapper, reference));
+	
+	return em;	
+}
+
+function boolean isWingConstraints(Object stand, Object aircraftType, 
+	QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_sd","retrieve_standmaxcapacity");
+	mapper.parameterized("STAND_CODE", stand);
+	Object standCapacity = reference.get(mapper.getQuery());
+	
+	if( standCapacity == null ) return false;
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", aircraftType );
+	double aircraftWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", standCapacity );
+	double standWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	return standWingSpan >= aircraftWingSpan;
+}
+
+function void reassignFitness(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_sd","retrieve_gatecode");
+	mapper.parameterized("STAND_CODE",  em.facts.get("stand:i"));
+	Object gateCode = reference.get(mapper.getQuery());
+	if(gateCode == null)
+		gateCode = "";
+
+	mapper.relace("_sqlmap_sd","update_aircraft_stand_parking_op");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	mapper.parameterized("AIRCRAFT_SP_SEQ",  em.facts.get("_spSeq"));
+	mapper.parameterized("STAND_CODE",  em.facts.get("stand:i"));
+	mapper.parameterized("GATE_CODE",  gateCode);
+	String status = em.facts.get("_type").equals("A")?"N":"U";
+	mapper.parameterized("STATUS",  status);
+	reference.modify(mapper.getQuery());
+}
+
+function void reaccomodatesFitness(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_sd","update_aircraft_stand_parking_op_flags");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	mapper.parameterized("AIRCRAFT_SP_SEQ",  em.facts.get("_spSeq"));
+	reference.modify(mapper.getQuery());
+}
+
+
+rule "single-allocation:initiation" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation", 
+        		round == 0
+    			)
+    then
+    	$em = initiationSingleAllocation($em, decisionTable, mapper, reference);
+    	$em.setPhase("single-allocation:initiation");
+    	update( $em );
+end
+
+rule "single-allocation:increments" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:increments", 
+        		round == 0
+    		)
+    then
+    	$em.setPhase("single-allocation:initiation");
+    	$em.facts.put("standList:i", $em.facts.getInt("standList:i") + 1);
+    	update( $em );
+end
+
+rule "single-allocation:ends" 
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:initiation", 
+        		facts.getList("standList").size() <= facts.getInt("standList:i"),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:ends with no allocation!!");
+    	$em.setPhase("single-allocation-validity:ends");
+end
+
+rule "single-allocation:operability-stand" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:initiation", 
+        		facts.getList("standList").size() > facts.getInt("standList:i"),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("stand:i", $em.facts.getListItemAt("standList", $em.facts.getInt("standList:i")));
+    	$em.logs("Stand allocation check at " + $em.facts.get("stand:i"));
+    	
+    	$em.setPhase("single-allocation:opearability-stand");
+    	$em = initiationOperabilityAllocation($em, mapper, reference);
+    	update( $em );
+end
+
+
+rule "single-allocation:operable"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:opearability-stand", 
+        		facts.getInt("standinoperation") == 0,
+        			round == 0
+    			)
+    then
+    
+    	$em = initiationAvailabilityAllocation($em, mapper, reference);
+    	$em.setPhase("single-allocation:availability-stand");
+    	update( $em );
+    	
+    	
+end
+
+rule "single-allocation:inoperable" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:opearability-stand", 
+    			facts.getInt("standinoperation") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:inoperability!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "single-allocation:inavailable" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:availability-stand", 
+        		!CustomUtil.isNull(facts.getMapItem("standconflictoperation","count")),
+        			 facts.getMapItemInt("standconflictoperation","count") != 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:inavailable!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "single-allocation:available" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:availability-stand", 
+        		(CustomUtil.isNull(facts.getMapItem("standconflictoperation","count")) 
+        			|| facts.getMapItemInt("standconflictoperation","count") == 0),
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-allocation:fitness-stand");
+    	$em = initiationFitnessAllocation($em, mapper, reference);
+    	update( $em ); 
+    	
+end
+
+rule "single-allocation:infitness" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:fitness-stand", 
+        		!facts.getBoolean("isStandFitness"),
+        			round == 0
+    			)
+    then
+		$em.logs("single-allocation:infitness!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "single-allocation:reassign-fitness" 	
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:fitness-stand", 
+        			facts.getBoolean("isStandFitness"),
+        				round == 0
+    			)
+    then
+    	$em.setPhase("single-allocation:fitness");
+    	$em.facts.put("return","ResourceAllocated");
+    	reassignFitness($em, mapper, reference);
+end
+
+rule "single-allocation:reaccomodates-fitness" 	
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "single-allocation:fitness-stand", 
+        			facts.getBoolean("isStandFitness"),
+        				facts.getBoolean("onfitnessAssignation"),
+        					round == 0
+    			)
+    then
+    	reaccomodatesFitness($em, mapper, reference);
+end

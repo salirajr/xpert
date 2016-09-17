@@ -1,0 +1,103 @@
+//created on: Aug 28, 2031
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+
+rule "fatal-error:no-type-provided"
+	salience 110
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, 
+        			CustomUtil.isNullOrBlank(facts.get("_type") )
+    			)
+    then
+    	$em.setPhase("fatal-error:no-type-provided");
+    	$em.facts.put("return","ERR: TYPE IS NULL");
+    	
+end
+ 
+rule "incomplete-input:in0"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("B", "E"), 
+        			CustomUtil.isNullOrBlank(facts.get("in0"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: STAND CODE IS NULL");
+    	
+end
+
+rule "incomplete-input:in1"
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("A"), 
+        			CustomUtil.isNullOrBlank(facts.get("in0"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: ETD IS NULL");
+    	
+end
+
+rule "incomplete-input:in3"
+	salience 70
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("B"), 
+        			CustomUtil.isNullOrBlank(facts.get("in3"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: SERVICE TYPE IS NULL");
+end
+
+
+rule "incomplete-input:in4"
+	salience 60
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("B"), 
+        			CustomUtil.isNullOrBlank(facts.get("in4"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: AIRCRAFT TYPE IS NULL");
+end
+
+rule "incomplete-input:in5"
+	salience 50
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("E"), 
+        			CustomUtil.isNullOrBlank(facts.get("in5"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: STAND PARKING SEQUENCE IS NULL");
+end
+
+rule "incomplete-input:in6"
+	salience 40
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") in ("B","C","E"), 
+        			CustomUtil.isNullOrBlank(facts.get("in6"))
+    			)
+    then
+    	$em.setPhase("err:incomplete-input");
+    	$em.facts.put("return","ERR: VISIT SEQUENCE IS NULL");
+end

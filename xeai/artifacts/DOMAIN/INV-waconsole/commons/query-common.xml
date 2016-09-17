@@ -1,0 +1,263 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+
+	<bean id="commonQDao" class="com.xybase.ax.eai.waconsole.appliance.qdao.QDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<constructor-arg>
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map>
+						<entry key="now">
+							<value>
+						<![CDATA[
+							select cast(now() as timestamp)					
+						]]>
+							</value>
+						</entry>
+						<entry key="parametertest">
+							<value>
+						<![CDATA[
+							select to_json(ttable.*) from (select now() tstamp, ? p1 ,? p2 ,? p3) ttable			
+						]]>
+							</value>
+						</entry>
+						<entry key="cbxstubtscenario">
+							<value>
+							<![CDATA[
+								select array_to_json(array_agg(ttemp.*)) 
+								from 
+									(	
+										select xst.tscenario_name as key, xst.tscenario_description as description
+										from xeai_stub_tscenario xst 
+										where xst.tscenario_context is not null and xst.tscenario_context != ''
+										order by xst.tscenario_name
+									) ttemp			
+							]]>
+							</value>
+						</entry>
+						<entry key="contextstubtscenariobyname">
+							<value>
+						<![CDATA[
+							select to_json(ttemp.*) 
+							from 
+								(	
+									select xst.tscenario_payload rqo, xst.tscenario_context context, xst.tscenario_payload_type rqoType
+									from xeai_stub_tscenario xst 
+									where xst.tscenario_name = ?
+								) ttemp			
+						]]>
+							</value>
+						</entry>
+						<entry key="cbxevents_name">
+							<value>
+						<![CDATA[
+							select array_to_json(array_agg(ttemp.*)) 
+							from 
+								(	
+									select event_name as key from xeai_event order by event_name
+								) ttemp			
+						]]>
+							</value>
+						</entry>
+						<entry key="cbxauditlogconfig_name">
+							<value>
+						<![CDATA[
+							select array_to_json(array_agg(ttemp.*)) 
+							from 
+								(	
+									select distinct audit_type as key from xeai_audit_log_config order by audit_type
+								) ttemp			
+						]]>
+							</value>
+						</entry>
+						<entry key="audilogpayload">
+							<value>
+								<![CDATA[
+									select to_json(ttable.*) from (
+										select payload from xeai_audit_log 
+										where xeai_id = ? and event_name = ? and audit_type = ? 
+									) ttable
+										
+								]]>
+							</value>
+						</entry>
+						<entry key="auditerrorlogcause">
+							<value>
+								<![CDATA[
+									select to_json(ttable.*) from (
+										select severity||', '||cause "error_detail" from xeai_audit_error_log 
+										where xeai_id = ? and event_name = ? 
+									) ttable
+										
+								]]>
+							</value>
+						</entry>
+						<entry key="flcontainer">
+							<value>
+						<![CDATA[
+							select array_to_json(array_agg(ttemp.*)) 
+							from 
+							(	
+								select xf.*, xb.xeai_bus_group, xb.xeai_bus_cipher from xeai_flcontainer xf 
+									join xeai_bus xb on xb.xeai_bus_code = xf.container_bus
+									order by xf.container_owner, xf.container_flgroup, xf.container_flsequence
+								
+							) ttemp		
+						]]>
+							</value>
+						</entry>
+						<entry key="buscontext">
+							<value>
+								<![CDATA[
+									select array_to_json(array_agg(ttemp.*)) 
+									from 
+									(	
+										select xb.xeai_bus_code, xc.context_site, xc.context_alias, 
+											xbc.context_level, xbc.context_sequence, xbc.context_code, 
+											xbc.xeai_bus_code_binder
+										from 
+										xeai_context xc join xeai_buscontext xbc 
+										on xc.context_code = xbc.context_code
+										join xeai_bus xb on xbc.xeai_bus_code = xb.xeai_bus_code 
+										where xb.xeai_bus_code = ? 
+										order by xbc.context_level, xbc.context_sequence
+									) ttemp		
+								]]>
+							</value>
+						</entry>
+						<entry key="owner">
+							<value>
+								<![CDATA[
+									select array_to_json(array_agg(ttemp.*)) 
+									from 
+									(	
+										select name as key from xeai_owner order by 1
+									) ttemp		
+								]]>
+							</value>
+						</entry>
+						<entry key="group">
+							<value>
+								<![CDATA[
+									select array_to_json(array_agg(ttemp.*)) 
+									from 
+									(	
+										select group_key as key from xeai_group WHERE group_identifier LIKE ? order by group_key asc
+									) ttemp		
+								]]>
+							</value>
+						</entry>
+						<entry key="contextTransform">
+							<value>
+						<![CDATA[
+							select to_json(ttemp.*) 
+							from 
+								(	
+									select xt.transform_template as context
+									from xeai_transform xt 
+									WHERE  xt.transform_id= to_number(?,'999999999')
+								) ttemp			
+						]]>
+							</value>
+						</entry>
+						<entry key="ownerdefinition">
+							<value>
+								<![CDATA[
+									select
+									   to_json(ttemp.*)          
+									from
+									   (            
+									   select
+									      xo.*,
+									      xla.*   
+									   from
+									      xeai_owner xo,
+									      (select
+									         *      
+									      from
+									         xeai_lookup_archcomp      
+									      where
+									         name = 'WACONSOLE.MASTERPATH') xla   
+									   where
+									      xo.name = xla.key      
+									      and  xo.name = ?          
+									   ) ttemp
+								]]>
+							</value>
+						</entry>
+						<entry key="messageversioning">
+							<value>
+								<![CDATA[
+									select
+									   to_json(ttemp.*)          
+									from(            
+								       select
+										   message_template,
+										   message_sample 
+										from
+										   xeai_message_versioning 
+										where
+										   message_group = ? 
+										   and message_name = ?    
+									) ttemp
+								]]>
+							</value>
+						</entry>
+						<entry key="context-sequence">
+							<value>
+								<![CDATA[
+									select array_to_json(array_agg(ttemp.*)) 
+									from 
+									(	
+										SELECT context_sequence()
+									) ttemp		
+								]]>
+							</value>
+						</entry>
+						<entry key="bus-sequence">
+							<value>
+								<![CDATA[
+									select
+									   to_json(ttemp.*)          
+									from (	
+										SELECT bus_sequence() ) ttemp		
+								]]>
+							</value>
+						</entry>
+						<entry key="context-buscontext-colleteralcheck">
+							<value>
+								<![CDATA[
+									select
+									   to_json(ttemp.*)          
+									from(            
+										select
+										   xc.context_alias,
+										   xc.context_code,
+										   (select
+										      count(1) 
+										   from
+										      xeai_buscontext 
+										   where
+										      context_code = xc.context_code 
+										      and xeai_bus_code = ?)  colleteral
+										from
+										   (  select
+										      * 
+										   from
+										      xeai_context 
+										   where
+										      context_site = ?) xc
+									) ttemp	
+								]]>
+							</value>
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>	

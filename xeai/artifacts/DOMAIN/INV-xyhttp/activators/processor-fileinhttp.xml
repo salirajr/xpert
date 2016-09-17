@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+	<int:channel id="defaultChannelIn" />
+
+	<int:channel id="defaultChannelOut">
+		<int:queue />
+	</int:channel>
+
+
+	<int:bridge input-channel="defaultChannelIn" output-channel="stubChannelOut" />
+
+
+	<int:channel id="stubChannelOut">
+		<int:interceptors>
+			<int:wire-tap channel="senderLogger" />
+		</int:interceptors>
+	</int:channel>
+
+	<int:logging-channel-adapter id="senderLogger"
+		level="INFO" />
+	
+	<int-http:outbound-gateway request-channel="stubChannelOut" 
+		reply-channel="stubChannelIn" expected-response-type="java.lang.String"
+		url="http://192.168.101.70:8081/EaiXystubs/sync/rspst/FileInHttp/MessageReceiver.do"
+		http-method="POST">
+	</int-http:outbound-gateway>
+
+	<int:bridge input-channel="stubChannelIn" output-channel="defaultChannelOut" />
+
+	<int:channel id="stubChannelIn">
+		<int:interceptors>
+			<int:wire-tap channel="senderLogger" />
+		</int:interceptors>
+	</int:channel>
+
+
+	<!-- <int:bridge input-channel="stubChannelIn" output-channel="defaultChannelOut" 
+		/> -->
+
+
+</beans>

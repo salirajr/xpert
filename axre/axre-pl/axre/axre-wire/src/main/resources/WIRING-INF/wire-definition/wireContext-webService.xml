@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration-4.1.xsd
+    http://www.springframework.org/schema/integration/xml
+    http://www.springframework.org/schema/integration/xml/spring-integration-xml-4.1.xsd
+    http://www.springframework.org/schema/integration/ws 
+    http://www.springframework.org/schema/integration/ws/spring-integration-ws-4.1.xsd">
+
+	<bean id="EIservices"
+		class="org.springframework.ws.wsdl.wsdl11.SimpleWsdl11Definition">
+		<constructor-arg value="/WEB-INF/wsdl/EIservices.wsdl" />
+	</bean>
+
+	<bean id="ShakehandContractMock"
+		class="org.springframework.ws.wsdl.wsdl11.SimpleWsdl11Definition">
+		<constructor-arg value="/WEB-INF/wsdl/ShakehandContractMock.wsdl" />
+	</bean>
+
+	<!-- Ensures that all incoming requests will be routed to the ws:inbound-gateway -->
+	<bean
+		class="org.springframework.ws.server.endpoint.mapping.UriEndpointMapping">
+		<property name="defaultEndpoint" ref="defaultWebServicePort" />
+	</bean>
+
+	<int:channel id="webService-input" />
+
+	<int-ws:inbound-gateway id="defaultWebServicePort"
+		request-channel="webService-input" />
+
+	<int-xml:xpath-router id="webService-router"
+		default-output-channel="ShakehandContractMockChannel-input"
+		input-channel="webService-input" evaluate-as-string="true">
+		<int-xml:xpath-expression expression="name(/*/*/*)" />
+		<int-xml:mapping value="shak:ShakehandContractMockRequest"
+			channel="ShakehandContractMockChannel-input" />
+
+		<int-xml:mapping value="ns1:executeCarouselOpRule"
+			channel="EIservicesPort-input-coop" />
+		<int-xml:mapping value="ns1:executeCounterOpRule"
+			channel="EIservicesPort-input-cuop" />
+		<int-xml:mapping value="ns1:executeStandOpRule"
+			channel="EIservicesPort-input-sdop" />
+			
+		<int-xml:mapping value="ns1:executeCarouselPlRule"
+			channel="EIservicesPort-input-copl" />
+		<int-xml:mapping value="ns1:executeCounterPlRule"
+			channel="EIservicesPort-input-cupl" />
+		<int-xml:mapping value="ns1:executeStandPlRule"
+			channel="EIservicesPort-input-sdpl" />
+	</int-xml:xpath-router>
+
+</beans>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Endpoint</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+</head>
+
+<body>
+	<span layout:fragment="page-title">REGISTERED ENDPOINT COMPONENT</span>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default">
+			<div class="panel-body   table-responsive">
+				<table id="endpoint-buses-components"
+					class="table table-striped table-bordered table-hover dataTables-example">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>State</th>
+							<th>Protocol</th>
+							<!-- <th>Type</th> -->
+							<th>Group Component</th>
+							<th>Business Flow</th>
+							<th>Module Group</th>
+
+						</tr>
+					</thead>
+					<!-- <tbody>
+						<tr class="gradeX">
+							<td><a>AIDXIATASchedule</a></td>
+							<td>AIDXIATASchedule</td>
+							<td><a>Active</a></td>
+							<td class="center"><a>XEAIMBPRIMEFLOW</a></td>
+							<td class="center"><a>AidxXtrctsInfo</a></td>
+							<td></td>
+							<td>XML</td>
+							<td>'RMSDB'</td>
+							<td>java.util.Map</td>
+						</tr>
+						<tr class="gradeX">
+							<td><a>EjbXmbSubDataPool</a></td>
+							<td>AFSUPDATETOWWW</td>
+							<td><a>Active</a></td>
+							<td class="center"><a>XEAIMBPRIMEFLOW</a></td>
+							<td class="center"><a>AxpertPRIORDataXchanges</a></td>
+							<td>'ODB'</td>
+							<td>FIXEDLENGTH</td>
+							<td>'AP2'</td>
+							<td>FIXEDLENGTH</td>
+						</tr>
+						<tr class="gradeX">
+							<td><a>XITRSCHDLRouter</a></td>
+							<td>XITRSCHDLRouter</td>
+							<td><a>Deactivate</a></td>
+							<td class="center"><a>XEAIMBPRIMEFLOW</a></td>
+							<td class="center"><a>XeaiMockConformaceTS</a></td>
+							<td></td>
+							<td>XML</td>
+							<td>'XyStubs'</td>
+							<td>XML</td>
+						</tr>
+						<tr class="gradeX">
+							<td><a>XITRSCHDLRouter</a></td>
+							<td>XITRSCHDLRouter</td>
+							<td><a>Inactive</a></td>
+							<td class="center"><a>XEAIMBPRIMEFLOW</a></td>
+							<td class="center"><a>XeaiMockConformaceTS</a></td>
+							<td></td>
+							<td>JSON</td>
+							<td>'XyStubs'</td>
+							<td>JSON</td>
+						</tr>
+						
+
+					</tbody> -->
+					<tfoot>
+
+					</tfoot>
+				</table>
+			</div>
+
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/endpoint_script.js"
+			th:src="@{/ui/js/endpoint_script.js}"></script>
+	</div>
+
+
+</body>
+
+</html>

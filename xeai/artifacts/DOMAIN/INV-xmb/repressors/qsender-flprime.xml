@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.2.xsd http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd">
+
+
+	<int:chain id="outboundChainDefault" input-channel="outboundAxpertDefaultQueue">
+		<int:header-enricher>
+			<int:header name="Endpoint"
+				expression="'Queue-from: ' + @xmBrokerQueue.get('DEFAULT!')" />
+		</int:header-enricher>
+		<int-jms:outbound-channel-adapter
+			connection-factory="XeaiActiveMQConnectionFactory"
+			destination-expression="@xmBrokerQueue.get('DEFAULT!')"
+			message-converter="xmbTextMessageConverter" />
+	</int:chain>
+
+	<int:chain id="outboundChainAxpert" input-channel="outboundQueueAxpert">
+		<int:header-enricher>
+			<int:header name="Endpoint"
+				expression="'QUEUE[' + @xmBrokerQueue.get(headers['Endpoint'])+']'" />
+		</int:header-enricher>
+		<int-jms:outbound-channel-adapter
+			connection-factory="XeaiActiveMQConnectionFactory"
+			destination-expression="@xmBrokerQueue.get(headers['Endpoint'])"
+			message-converter="xmbTextMessageConverter" />
+	</int:chain>
+
+</beans>

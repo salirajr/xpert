@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:int-xml="http://www.springframework.org/schema/integration/xml">
+
+	<int:channel id="errorHandler" />
+
+	<int:chain input-channel="errorHandler">
+		<int:header-enricher>
+			<int:header name="ErrorID" expression="@xeaiErrorSequence.retrieve()" />
+		</int:header-enricher>
+		<int:outbound-channel-adapter method="audit"
+			ref="responseErrorHandlerImpl" />
+	</int:chain>
+
+	<bean id="responseErrorHandlerImpl"
+		class="com.xybase.ax.eai.archcomp.handler.error.ResponseErrorHandlerImpl">
+		<property name="auditErrorLogDao" ref="auditErrorLogDao" />
+		<property name="serverity" value="FATAL ERROR: MESSAGE DIDNT RECEIVED!" />
+	</bean>
+
+</beans>

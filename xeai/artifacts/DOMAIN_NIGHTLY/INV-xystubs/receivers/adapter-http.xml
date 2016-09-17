@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd  http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+    http://www.springframework.org/schema/integration/xml"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml">
+
+	<int-http:inbound-channel-adapter id="defaultInboundAdapter"
+		channel="defaultChannelIn-async" path="/async/{operation}/{identifier}/MessageReceiver"
+		supported-methods="GET, PUT, POST, DELETE">
+		<int-http:header name="OPERATION" expression="#pathVariables.operation" />
+		<int-http:header name="IDENTIFIER" expression="#pathVariables.identifier" />
+		<int-http:header name="PROCESSOR"
+			expression="(#pathVariables.operation).toUpperCase()" />
+	</int-http:inbound-channel-adapter>
+
+</beans>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<!-- use the DataSource exposed by JNDI -->
+	<bean id="rmsDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="java:jboss/datasources/rms" />
+	</bean>
+
+	<!-- Definition for ReferenceDAO bean -->
+	<bean id="rmsReference" class="com.concept.ruleengine.reference.dao.ReferenceDAOImpl">
+		<property name="dataSource" ref="rmsDataSource" />
+	</bean>
+
+	<!-- Initialization for com.concept.ruleengine.reference.mapper.QueryMapper -->
+	<bean id="xlsQueryMapper"
+		class="com.concept.ruleengine.reference.mapper.QueryMapperXlsImpl"></bean>
+
+
+	<!-- Initialization for com.concept.ruleengine.dt.model.DecisionTable -->
+	<bean id="xlsDecisionTable" class="com.concept.ruleengine.dt.model.DecisionTableXlsImpl"></bean>
+
+	<import
+		resource="file:${axre.archcomp.basepath}/assets/session/sessionContext-*.xml" />
+	<import
+		resource="file:${axre.archcomp.wiring.basepath}/wire-definition/wireContext-*.xml" />
+	<import
+		resource="file:${axre.archcomp.wiring.basepath}/wireservice-definition/wireserviceContext-*.xml" />
+
+
+</beans>

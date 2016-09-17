@@ -1,0 +1,129 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.model.EphemeralFact 
+import com.concept.ruleengine.model.EphemeralFactType
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.dt.model.DecisionTable
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.common.util.StringUtil
+
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle initiationFitness(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.facts.put("isStandFitness", 
+		isWingConstraints(
+			em.facts.get("stand:i"), em.facts.get("_aircraftType"), mapper, reference));
+	
+	return em;	
+}
+
+function boolean isWingConstraints(Object stand, Object aircraftType, 
+	QueryMapper mapper, ReferenceDAO reference){
+		
+	mapper.relace("_sqlmap_sd","retrieve_standmaxcapacity");
+	mapper.parameterized("STAND_CODE", stand);
+	Object standCapacity = reference.get(mapper.getQuery());
+	
+	if( standCapacity == null ) return false;
+	
+	mapper.relace("_sqlmap_sd","retrieve_iatasubtypewingspan");
+	mapper.parameterized("IATA_SUBTYPE_CODE", aircraftType );
+	double aircraftWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	mapper.parameterized("IATA_SUBTYPE_CODE", standCapacity );
+	double standWingSpan = reference.getNumeric(mapper.getQuery());
+	
+	return standWingSpan >= aircraftWingSpan;
+}
+
+function void fitnessAssignment(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_sd","retrieve_gatecode");
+	mapper.parameterized("STAND_CODE",  em.facts.get("stand:i"));
+	Object gateCode = reference.get(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_sd","retrieve_standparkingseq_count");
+	mapper.parameterized("AIRCRAFT_SP_SEQ",  em.facts.get("_spSeq"));
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ",  em.facts.get("_visitSeq"));
+	double countStandparking = reference.getNumeric(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_sd","insert_aircraft_stand_parking_op");
+	mapper.parameterized("AIRCRAFT_VISIT_SEQ", em.facts.get("_visitSeq"));
+	mapper.parameterized("AIRCRAFT_SP_SEQ",  em.facts.get("_spSeq"));
+	mapper.parameterized("STAND_CODE",  em.facts.get("stand:i"));
+	mapper.parameterized("GATE_CODE",  gateCode);
+	String status = em.facts.get("_type").equals("A")?"N":"U";
+	mapper.parameterized("STATUS",  status);
+	
+	if(countStandparking < 1){
+		reference.modify(mapper.getQuery());
+		em.logs("add tuple AIRCRAFT STAND PARKING OP");
+	}
+		
+}
+
+rule "alocation-validity:fitness-initiation" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "alocation-validity:fitness-stand-initiation",
+        		round == 0
+    			)
+    then
+		$em.setPhase("alocation-validity:fitness-stand");
+		$em = initiationFitness($em, mapper, reference);
+		update( $em );
+end
+
+
+rule "alocation-validity:infitness" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "alocation-validity:fitness-stand", 
+        		!facts.getBoolean("isStandFitness"),
+        			round == 0
+    			)
+    then
+		$em.logs("alocation-validity:infitness!!, reconciliated with next possibility!"); 
+		$em.setPhase("alocation-validity:increments");
+		update( $em );
+end
+
+rule "alocation-validity:fitness" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "alocation-validity:fitness-stand", 
+        		facts.getBoolean("isStandFitness"),
+        			round == 0
+    			)
+    then
+    	$em.setPhase("alocation-validity:fitness");
+    	$em.logs("alocated on validity:fitness stage!!");
+    	$em.facts.put("return","ResourceAllocated");
+end
+
+rule "alocation-validity:fitness-assignment" 
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "alocation-validity:fitness-stand", 
+        		facts.getBoolean("isStandFitness"),
+        			facts.get("_type") in ("A", "D"),
+        			round == 0
+    			)
+    then
+    	$em.setPhase("alocation-validity:fitness-assignment");
+    	fitnessAssignment($em, mapper, reference);
+end

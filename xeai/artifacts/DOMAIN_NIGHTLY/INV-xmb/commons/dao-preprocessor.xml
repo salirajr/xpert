@@ -1,0 +1,50 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="archLookupDao" class="com.xybase.ax.eai.archcomp.lookup.dao.LookupDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select key, value from xeai_lookup_archcomp where name = ?"></property>
+	</bean>
+
+	<bean id="dataLookupDao" class="com.xybase.ax.eai.archcomp.lookup.dao.LookupDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select key, value from xeai_lookup_data where name = ?"></property>
+	</bean>
+
+	<bean id="auditLogDao"
+		class="com.xybase.ax.eai.archcomp.common.audit.dao.AuditLogDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="insert into xeai_audit_log (audit_time, endpoint, severity, payload, audit_param, xeai_id, correlation_id, event_name, audit_type) values (to_timestamp( ?,'mm-dd-yyyy hh24:mi:ss.ms'), ?, ?, ?, ?, ?, ?, ?, ?)"></property>
+	</bean>
+
+	<!-- add by azis -->
+	<bean id="dataSelectorDao" class="com.xybase.ax.eai.archcomp.selector.dao.SelectorDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select selector_sequence, selector_expression , selector_discard_message,selector_config from xeai_selector where selector_id = ? and selector_config = 1 order by selector_sequence asc"></property>
+	</bean>
+	<!-- add by azis -->
+
+	<!-- Definition for ReferenceDAO bean -->
+	<bean id="eventBaseMDaoImpl" class="com.xybase.ax.eai.archcomp.matrix.dao.MatrixDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="query"
+			value="select event_name, event_status, system_source, system_target from xeai_event where event_base = ? " />
+	</bean>
+
+	<bean id="XeaiActiveMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<constructor-arg value="#{@defaultBrokerDefinition.get('username')}" />
+		<constructor-arg value="#{@defaultBrokerDefinition.get('password')}" />
+		<constructor-arg value="#{@defaultBrokerDefinition.get('url')}" />
+	</bean>
+
+	<bean id="XeaiAmqJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="XeaiActiveMQConnectionFactory" />
+	</bean>
+
+</beans>

@@ -1,0 +1,33 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="xmbMessageConverter"
+		class="com.xybase.ax.eai.xmb.message.converter.XmbMessageConverter" />
+
+	<bean id="xmBrokerQueue" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="BROKER.QUEUE.NAME" />
+	</bean>
+
+	<bean id="defaultBrokerDefinition" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="BROKER.DEFINITION.DEFAULT" />
+	</bean>
+
+	<bean id="xmbTextMessageConverter"
+		class="com.xybase.ax.eai.xmb.message.converter.XmbTextMessageConverter" />
+
+	<bean id="xmbIddEvents" class="com.xybase.ax.eai.archcomp.matrix.Matrix"
+		factory-bean="eventGroupMDaoImpl" factory-method="get">
+		<constructor-arg value="EVENT_NAME" />
+		<constructor-arg value="IMB, BOUND-INTERNAL" />
+		<property name="sets" value="xmbIddEvents" />
+	</bean>
+
+	<bean id="messageBridge" class="com.xybase.ax.eai.archcomp.message.bridge.MessageBridge">
+		<constructor-arg value="repressorChannel" />
+	</bean>
+
+</beans>

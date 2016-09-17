@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd 
+		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml-4.2.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-4.2.xsd">
+
+	<bean id="lookupRmsConnection" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="DATABASE.DEFINITION.CONNECTION.RMS" />
+	</bean>
+
+	<bean id="xrmsDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url"
+			value="#{'jdbc:postgresql://' + @lookupRmsConnection.get('host') + ':' + @lookupRmsConnection.get('port') + '/' + @lookupRmsConnection.get('database-name') + '?ApplicationName=IMHTTP'}" />
+		<property name="username" value="#{@lookupRmsConnection.get('username')}" />
+		<property name="password" value="#{@lookupRmsConnection.get('password')}" />
+	</bean>
+	
+	<bean id="lookupOdbConnection" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="DATABASE.DEFINITION.CONNECTION.ODB" />
+	</bean>
+
+	<bean id="xodbDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver" />
+		<property name="url"
+			value="#{'jdbc:postgresql://' + @lookupOdbConnection.get('host') + ':' + @lookupOdbConnection.get('port') + '/' + @lookupOdbConnection.get('database-name') + '?ApplicationName=IMHTTP'}" />
+		<property name="username" value="#{@lookupOdbConnection.get('username')}" />
+		<property name="password" value="#{@lookupOdbConnection.get('password')}" />
+	</bean>
+
+	<int:channel id="defaultChannelIn" />
+
+	<int:channel id="defaultChannelOut">
+		<int:queue />
+	</int:channel>
+
+	<int:chain input-channel="defaultChannelIn" output-channel="qualifierChannelRouter">
+		<int-xml:xpath-header-enricher>
+			<int-xml:header name="Airline"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegIdentifier/Airline"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="FlightNumber"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegIdentifier/FlightNumber"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="DepartureAirport"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegIdentifier/DepartureAirport"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="ArrivalAirport"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegIdentifier/ArrivalAirport"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="OriginDate"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegIdentifier/OriginDate"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="ServiceType"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegData/ServiceType"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="OperationTime"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegData/OperationTime"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="OperationQualifier"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegData/OperationTime/@OperationQualifier"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="AircraftType"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegData/AircraftInfo/AircraftType"
+				evaluation-type="STRING_RESULT" />
+			<int-xml:header name="Registration"
+				xpath-expression="/IATA_AIDX_FlightLegNotifRQ/FlightLeg/LegData/AircraftInfo/Registration"
+				evaluation-type="STRING_RESULT" />
+		</int-xml:xpath-header-enricher>
+		<int:header-enricher>
+			<int:header name="Leg"
+				expression="headers['DepartureAirport'] == 'IST'?'D':headers['ArrivalAirport'] == 'IST'?'A':'X'" />
+			<int:header name="NormOperationTime"
+				expression="headers['OperationTime'].replace('T', ' ').replace('Z', '')" />
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			query="select afskey, gmkey 
+					from fmm_flight where cast(std1 as date) = to_date(:headers[OriginDate], 'YYYY-MM-DD')
+						and leg = :headers[Leg]
+						and iata_service_type_code = :headers[ServiceType] 
+						and aircraft_type = :headers[AircraftType] 
+						and aircraft_reg_no = :headers[Registration]
+						and flight_no = concat(:headers[Airline],' ',:headers[FlightNumber])" />
+		<int:header-enricher>
+			<int:header name="AfsKey" expression="payload[afskey]"></int:header>
+			<int:header name="GmKey" expression="payload[gmkey]"></int:header>
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			query="select aircraft_visit_seq, afskey_arrival, afskey_departure 
+					from fmm_aircraft_visit 
+					where afskey_departure = :payload[afskey] or afskey_arrival = :payload[afskey]" />
+		<int:header-enricher>
+			<int:header name="AircraftVisitID" expression="payload[aircraft_visit_seq]"></int:header>
+			<int:header name="AfskeyDepart" expression="payload[afskey_departurel]"></int:header>
+			<int:header name="AfskeyArrive" expression="payload[afskey_arrival]"></int:header>
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			query="select rmskey from rms_operation where afskey =  concat('DB', :headers[AfsKey]) or afskey = :headers[GmKey]" />
+		<int:header-enricher>
+			<int:header name="RmsKey" expression="payload[rmskey]"></int:header>
+		</int:header-enricher>
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			query="select aircraft_visit_seq, rmskey_arrival, rmskey_departure 
+					from rms_aircraft_visit_op 
+					where rmskey_departure = :payload[rmskey] or afskey_arrival = :payload[rmskey]" />
+		<int:header-enricher>
+			<int:header name="RmsAircraftVisitID" expression="payload[aircraft_visit_seq]"></int:header>
+			<int:header name="RmskeyDepart" expression="payload[rmskey_departurel]"></int:header>
+			<int:header name="RmskeyArrive" expression="payload[rmskey_arrival]"></int:header>
+		</int:header-enricher>
+	</int:chain>
+
+	<int:channel id="qualifierChannelRouter" />
+
+	<int:header-value-router input-channel="qualifierChannelRouter"
+		default-output-channel="defaultChannelOut" header-name="OperationQualifier">
+		<int:mapping channel="inblockChannelModify" value="ONB" />
+		<int:mapping channel="offblockChannelModify" value="OFB" />
+	</int:header-value-router>
+
+	<int:channel id="inblockChannelModify" />
+	<int:chain input-channel="inblockChannelModify"
+		output-channel="defaultChannelOut">
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			update="update fmm_aircraft_stand_parking 
+				set on_block_time = CAST(to_timestamp(:headers[NormOperationTime], 'YYYY-MM-DD HH24:MI:SS') + INTERVAL '8 hours' AS TIMESTAMP) 
+				where aircraft_visit_seq = :headers[AircraftVisitID]" />
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			update="update rms_aircraft_stand_parking_op 
+				set on_block_time = CAST(to_timestamp(:headers[NormOperationTime], 'YYYY-MM-DD HH24:MI:SS') + INTERVAL '8 hours' AS TIMESTAMP) 
+				where aircraft_visit_seq = :headers[RmsAircraftVisitID]" />
+		<int-jdbc:outbound-gateway data-source="xeaiDataSource"
+			query="select message_sample from xeai_message_versioning where message_group = 'imhttp-mock' and message_name = 'AIDXFlightLegNotif'" />
+		<int:transformer expression="payload['message_sample']"/>
+	</int:chain>
+
+
+	<int:channel id="offblockChannelModify" />
+	<int:chain input-channel="offblockChannelModify"
+		output-channel="defaultChannelOut">
+		<int-jdbc:outbound-gateway data-source="xodbDataSource"
+			update="update fmm_aircraft_stand_parking 
+				set off_block_time = CAST(to_timestamp(:headers[NormOperationTime], 'YYYY-MM-DD HH24:MI:SS') + INTERVAL '8 hours' AS TIMESTAMP) 
+				where aircraft_visit_seq = :headers[AircraftVisitID]" />
+		<int-jdbc:outbound-gateway data-source="xrmsDataSource"
+			update="update rms_aircraft_stand_parking_op 
+				set off_block_time = CAST(to_timestamp(:headers[NormOperationTime], 'YYYY-MM-DD HH24:MI:SS') + INTERVAL '8 hours' AS TIMESTAMP) 
+				where aircraft_visit_seq = :headers[RmsAircraftVisitID]" />
+		<int-jdbc:outbound-gateway data-source="xeaiDataSource"
+			query="select message_sample from xeai_message_versioning where message_group = 'imhttp-mock' and message_name = 'AIDXFlightLegNotif'" />
+		<int:transformer expression="payload['message_sample']"/>
+	</int:chain>
+
+
+
+</beans>

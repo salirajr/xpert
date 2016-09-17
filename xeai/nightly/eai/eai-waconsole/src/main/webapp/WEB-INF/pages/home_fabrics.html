@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/fabrics_style.css"
+	th:href="@{/ui/css/fabrics_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">SERVICE CONTEXT FABRICS</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default  btn-outline"
+			title="locks" id="locks">
+			<i id="lock-state" class="fa fa-unlock"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="Rename" id="rename">
+			<i class="fa fa-wrench"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			onclick="window.location.href='action.do'" title="Link" id="link">
+			<i class="fa fa-link"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="col-md-3">
+					<div class="row b-r">
+						<div class="input-group">
+							<input id="builder-file" type="text" class="form-control"
+								value="INV"></input><span class="input-group-addon "><a><i
+									class="fa fa-gear gray-bg"></i></a></span>
+
+						</div>
+						<div class="scrollable b-l" style="font-size:90%;">
+							<div id="msgtools-jtree"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-9">
+					<div class="input-group m-b">
+						<span class="input-group-addon ">File: </span> <input
+							id="context-file" type="text" class="form-control"></input>
+
+					</div>
+					<pre id="context-editor"></pre>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Ace Editor -->
+		<script src="../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+
+		<!-- JSTREE -->
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/fabrics_script.js"
+			th:src="@{/ui/js/fabrics_script.js}"></script>
+	</div>
+
+</body>
+
+</html>

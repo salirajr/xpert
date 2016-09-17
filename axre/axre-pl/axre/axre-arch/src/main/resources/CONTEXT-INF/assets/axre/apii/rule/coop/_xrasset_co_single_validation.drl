@@ -1,0 +1,211 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.coop
+
+//list any import classes here.
+
+import java.util.Map
+
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+import java.util.Date
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle singleValidationInitiation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference, 
+			DecisionTable decisionTable){
+			
+	mapper.relace("_sqlmap_co","retrieve_rmsoperation");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey"));
+	Map map = reference.getMap(mapper.getQuery());
+	
+	em.facts.put("_serviceType",map.get("iata_service_type_code"));
+	em.facts.put("_eta",map.get("etad"));
+	em.facts.put("_airlineCode",map.get("airline_code"));
+	
+	mapper.relace("_sqlmap_co","retrieve_vr_of_contact_open_time_co");
+	em.facts.put("contactOpentime", reference.getNumeric(mapper.getQuery()));
+	
+	int leapMinute = (int) Math.floor(em.facts.getNumeric("contactOpentime"));
+	
+	em.facts.put(
+		"closetime", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(
+					StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss"), 
+						leapMinute), "yyyy-MM-dd HH:mm:ss"));
+	
+	return em;	
+}
+
+function EphemeralMantle sVAvailabilityInitiation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("single-validation:processing for availability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictavailability");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey") );
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("_reclaimCode") );
+	
+	Timestamp carouselOpenTime = StringUtil.toTimestamp(em.facts.get("_eta"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"CAROUSEL_OPEN_TIME", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(carouselOpenTime, em.facts.getInt("timeBuffer"), -1), 
+					"yyyy-MM-dd HH:mm:ss"));
+	mapper.parameterized("CAROUSEL_OPEN_TIME", em.facts.get("_eta") );
+	
+	Timestamp carouselCloseTime = StringUtil.toTimestamp(em.facts.get("closetime"), "yyyy-MM-dd HH:mm:ss");
+	mapper.parameterized(
+		"CAROUSEL_CLOSE_TIME", 
+			DateUtil.toString(
+				AirportMath.leapTimestamp(carouselCloseTime, em.facts.getInt("timeBuffer")), 
+					"yyyy-MM-dd HH:mm:ss"));
+	/* mapper.parameterized("CAROUSEL_CLOSE_TIME", em.facts.get("closetime") ); */
+	
+	em.facts.put("reclaiminavailable", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+function EphemeralMantle sVOperabilityInitiation(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for operability!");	
+	mapper.relace("_sqlmap_co","retrieve_carouselconflictoperation");
+	mapper.parameterized("CAROUSEL_CODE", em.facts.get("_reclaimCode") ); 
+	mapper.parameterized("INOP_START_TIME", em.facts.get("_eta") );
+	mapper.parameterized("INOP_END_TIME", em.facts.get("closetime") );
+	
+	em.facts.put("reclaiminoperation", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+function EphemeralMantle accomodatesOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_co","update_rmsoperation_status");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	return em;	
+}
+
+rule "carousel-single-validation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-validation", 
+    			round == 0
+			)
+    then
+    	$em = singleValidationInitiation($em, mapper, reference, decisionTable);
+		$em.setPhase("single-validation:validity");
+		update( $em );
+end
+
+rule "carousel-single-validation:nonservicetype-operation"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-validation:validity", 
+        		facts.getList("nonServicetypeList").contains(facts.get("_serviceType")),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:ends of non-service operation!!!!");
+    	$em.setPhase("single-allocation:ends");
+end
+
+rule "carousel-single-validation:initiation"
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase =="single-validation:validity", 
+        		!facts.getList("nonServicetypeList").contains(facts.get("_serviceType")),
+    				round == 0
+			)
+    then
+    	$em = sVOperabilityInitiation($em, mapper, reference);
+    	$em.setPhase("single-validation:opearability-reclaim");
+    	update( $em );
+    	
+    	
+end
+
+rule "carousel-single-validation:inoperable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-validation:opearability-reclaim", 
+    			facts.getNumeric("reclaiminoperation") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-validation:inoperability!!, reconciliated failed!"); 
+    	$em.facts.put("return","NoOperabilityReconciliated!");
+end
+
+rule "carousel-single-validation:operable"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-validation:opearability-reclaim", 
+        		facts.getNumeric("reclaiminoperation") == 0,
+        			round == 0
+    			)
+    then
+    	$em = sVAvailabilityInitiation($em, mapper, reference);
+		$em.setPhase("single-validation:availability-reclaim");
+		update( $em );
+end
+
+rule "carousel-single-validation:available" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-validation:availability-reclaim", 
+        		facts.getNumeric("reclaiminavailable") <= facts.getInt("maximumCapacity"),
+        			round == 0
+    			)
+    then
+		$em.setPhase("alocated on validity:availability stage");
+    	$em.logs("alocated on validity:availability stage!!");
+    	$em.facts.put("return","NoConflict");
+		
+end
+
+rule "carousel-single-validation:inavailable" 
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-validation:availability-reclaim", 
+        		facts.getNumeric("reclaiminavailable") > facts.getInt("maximumCapacity"),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-validation:inavailable!!, reconciliated failed!"); 
+    	$em.facts.put("return","InavailableReconciliated!");
+end
+
+rule "carousel-single-validation:reaccomodates-operable" 	
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "carousel-operation",
+        	phase == "single-validation:opearability-reclaim", 
+        		facts.getNumeric("reclaiminoperation") == 0,
+        				facts.getBoolean("onfitnessAssignation"),
+        					round == 0
+    			)
+    then
+    	accomodatesOperability($em, mapper, reference);
+end
+

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<bean id="wireService-copl" class="com.ptxti.concept.ruleengine.wire.AxreWireService">
+		<property name="factsMapper" ref="factsMapper-copl" />
+		<property name="knowledgeSession" ref="coplSession" />
+		<property name="operationName" value="carousel-planning" />
+	</bean>
+
+	<bean id="factsMapper-copl" class="com.ptxti.concept.ruleengine.mapper.DomFactsMapper">
+		<property name="facts" ref="resultMap-extraction-copl" />
+		<property name="resultMap" ref="resultMap-injection-copl" />
+		<property name="template"
+			value="ns1:executeCarouselPlRuleResponse xmlns:ns1='urn:EIservices' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' soapenv:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'" />
+	</bean>
+
+	<bean id="resultMap-extraction-copl" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="in0" value="/ns1:executeCarouselPlRule/in0" />
+				<entry key="in1" value="/ns1:executeCarouselPlRule/in1" />
+				<entry key="in2" value="/ns1:executeCarouselPlRule/in2" />
+				<entry key="in3" value="/ns1:executeCarouselPlRule/in3" />
+				<entry key="in4" value="/ns1:executeCarouselPlRule/in4" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="resultMap-injection-copl" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="return"
+					value="/ns1:executeCarouselPlRuleResponse/executeCarouselPlRuleReturn" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+</beans>

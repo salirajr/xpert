@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.2.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.2.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http">
+
+
+	<int:channel id="defaultChannelIn" />
+
+	<bean id="lookupGateway" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="HTTP.DEFINITION.ACDM" />
+	</bean>
+
+	<int:chain input-channel="defaultChannelIn" output-channel="channelOutbound">
+		<int:header-enricher>
+			<int:header name="XeaiCores"
+				expression="'pgln://xyscrib.listener.pg.PostgresNotifyListener/' + payload.database +'/XEAIPGLISTENER'" />
+			<int:header name="IntegrationID" expression="@xeaiSequence.retrieve()" />
+			<int:header name="XeaiEventID" value="AXPgDataXCHG" />
+		</int:header-enricher>
+		<int:enricher>
+			<int:property name="sourceSystem" expression="payload.database" />
+		</int:enricher>
+		<int:service-activator ref="postgresNotifyHandler"
+			method="handle" />
+		<int:transformer expression="payload.asAcdmTemplate()" />
+		<int:transformer ref="jsonConverter" method="toContext" />
+		<int:service-activator ref="pgnotificationTransformer"
+			method="handle" />
+		<int:transformer ref="jsonConverter" method="toString" />
+	</int:chain>
+
+	<bean id="postgresNotifyHandler"
+		class="com.xybase.ax.eai.archcomp.xyscrib.handler.PostgresNotifyHandler">
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="payloadKey">
+			<bean class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+				factory-bean="dataLookupDao" factory-method="get">
+				<constructor-arg value="POSTGRESNOTIFICATION.PAYLOAD.KEY" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="AXPgDataXCHG" index="0" />
+				<constructor-arg value="5000" index="1" />
+				<constructor-arg value="0" index="2" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="pgnotificationTransformer" class="com.xybase.ax.eai.archcomp.handler.TransformHandler">
+		<property name="payloadCycles" value="true" />
+		<property name="auditLogDao" ref="auditLogDao" />
+		<property name="transformer">
+			<bean class="com.xybase.ax.eai.archcomp.transformer.TransformerImpl"
+				factory-bean="transfromerFactory" factory-method="createNew">
+				<constructor-arg value="5000" />
+				<property name="extractor" ref="jsonExtractor" />
+				<property name="injector" ref="jsonInjector" />
+				<property name="processor" ref="transformationSpELProcessor" />
+			</bean>
+		</property>
+		<property name="auditLogConfigOut">
+			<bean class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+				factory-bean="auditLogConfigDao" factory-method="get">
+				<constructor-arg value="AXPgDataXCHG" index="0" />
+				<constructor-arg value="5000" index="1" />
+				<constructor-arg value="1" index="2" />
+			</bean>
+		</property>
+	</bean>
+
+
+	<int:channel id="channelOutbound" />
+
+	<int-http:outbound-gateway request-channel="channelOutbound"
+		reply-channel="defaultChannelOut" error-handler="responseErrorHandlerImpl"
+		expected-response-type="java.lang.String" url="#{'http://' + @lookupGateway.get('url')}"
+		http-method="POST">
+	</int-http:outbound-gateway>
+
+	<int:channel id="defaultChannelOut" />
+
+	<int:header-enricher input-channel="defaultChannelOut"
+		output-channel="defaultChannelLog">
+		<int:header name="Endpoint"
+			expression="'post-http:/ACDM/'+ @lookupGateway.get('url')" />
+	</int:header-enricher>
+
+	<int:channel id="defaultChannelLog" />
+
+	<int:outbound-channel-adapter method="audit"
+		channel="defaultChannelLog">
+		<bean class="com.xybase.ax.eai.archcomp.handler.audit.DefaultAuditHandler">
+			<property name="auditLogDao" ref="auditLogDao" />
+			<property name="extractor">
+				<bean id="jsonExtractor"
+					class="com.xybase.ax.eai.archcomp.transformer.extract.JsonExtractor" />
+			</property>
+			<property name="auditLogConfig">
+				<bean
+					class="com.xybase.ax.eai.archcomp.common.audit.config.AuditLogConfig"
+					factory-bean="auditLogConfigDao" factory-method="get">
+					<constructor-arg value="AXPgDataXCHG" index="0" />
+					<constructor-arg value="5000" index="1" />
+					<constructor-arg value="2" index="2" />
+				</bean>
+			</property>
+		</bean>
+	</int:outbound-channel-adapter>
+
+
+</beans>

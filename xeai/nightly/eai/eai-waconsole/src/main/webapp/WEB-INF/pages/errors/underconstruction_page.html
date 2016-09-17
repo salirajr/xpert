@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+
+<body layout:fragment="absoulte-body">
+	<div class="middle-box text-center animated fadeInDown">
+
+		<h1>
+			<i class="fa fa-angellist fa-10x"></i>
+		</h1>
+		<h2>471</h2>
+		<h3 class="font-bold">Page is under construction</h3>
+
+		<div class="error-desc">Sorry, but the page you are looking for
+			is under construction. Try next time, Peace!!</div>
+
+		Return <a th:href="@{/home.do}">Home</a>
+	</div>
+
+</body>
+
+</html>

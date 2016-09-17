@@ -1,0 +1,17 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+
+	<bean id="archUPID" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="archLookupDao" factory-method="get">
+		<constructor-arg value="UNIQUE.PATIENT.IDENTIFIER" />
+	</bean>
+
+	<bean id="dataUPID" class="com.xybase.ax.eai.archcomp.lookup.Lookup"
+		factory-bean="dataLookupDao" factory-method="get">
+		<constructor-arg value="UNIQUE.PATIENT.IDENTIFIER" />
+	</bean>
+
+</beans>

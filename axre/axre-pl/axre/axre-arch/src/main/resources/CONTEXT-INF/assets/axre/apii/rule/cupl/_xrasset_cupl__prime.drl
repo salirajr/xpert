@@ -1,0 +1,92 @@
+//created on: Aug 29, 2015
+package assets.axre.rule.apii.cupl
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+
+
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+
+function EphemeralMantle initiation(EphemeralMantle em){
+	em.facts.put("return","ERR - INCOMPLETE FACTS");
+	em.facts.remap("in2", "_type");
+	return em;
+}
+
+function EphemeralMantle initiationBulkAllocation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference){
+		
+	String eta = DateUtil.toString(
+    		StringUtil.toTimestamp(em.facts.get("in0"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss");
+		
+	em.facts.put("_inEtd", eta);
+	em.facts.remap("in3", "_inSessionId");
+	
+	mapper.relace("_sqlmap_cupl","count_bulk_rmsplanning");
+	mapper.parameterized("ETAD",em.facts.get("_inEtd") );
+	mapper.parameterized("SESSIONID",em.facts.get("_inSessionId") );
+	em.facts.put("bulksize", reference.getInt(mapper.getQuery()));
+	em.facts.put("_rmsKey", 0);
+	
+	em.facts.put("bulkoffset", 0);
+	em.facts.put("bulklimit", 10);
+	
+	return em;
+}
+
+rule "counter-initiation-calibration:initiated-phase"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "0000000", 
+        		round == 0
+    			)
+    then
+    	$em = initiation($em);
+    	$em.setPhase("initiation-calibration:input-validity");
+    	update( $em );
+end
+
+/* Note from AION,
+ * A: Bulk Processes/Manual 
+ * C: Single Allocation
+ */
+rule "counter-bulk-allocation:determination"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") == "A", 
+        			!CustomUtil.isNullOrBlank(facts.get("in0")), 
+        			!CustomUtil.isNullOrBlank(facts.get("in3"))
+    			)
+    then
+    	$em.facts.put("onfitnessAssignation", true);
+    	
+    	$em.setPhase("bulk-allocation");
+    	$em = initiationBulkAllocation($em, mapper, reference);
+    	update ( $em )
+    	
+end
+
+rule "counter-single-allocation:determination"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "initiation-calibration:input-validity", 
+        		round == 0, facts.get("_type") == "C", 
+        			!CustomUtil.isNullOrBlank(facts.get("in1"))
+    			)
+    then
+    	$em.facts.remap("in1", "_rmsKey");
+    	$em.facts.put("return","NoAllocationAvailable!");
+    	$em.facts.put("onfitnessAssignation", false);
+    
+    	$em.setPhase("single-allocation");
+    	update( $em );
+end

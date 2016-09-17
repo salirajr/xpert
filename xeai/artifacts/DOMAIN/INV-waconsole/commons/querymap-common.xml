@@ -1,0 +1,848 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="commonQMapDao"
+		class="com.xybase.ax.eai.waconsole.appliance.qmap.dao.QMapDaoImpl">
+		<property name="dataSource" ref="xeaiDataSource" />
+		<property name="conceal">
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map>
+						<entry key="plain">
+							<value>
+								<![CDATA[
+									#QUERY#
+								]]>
+							</value>
+						</entry>
+						<entry key="row">
+							<value>
+								<![CDATA[
+									select to_json(ttable.*) from (#QUERY#) ttable					
+								]]>
+							</value>
+						</entry>
+						<entry key="rows">
+							<value>
+								<![CDATA[
+									select array_to_json(array_agg(ttable.*)) from (#QUERY#) ttable					
+								]]>
+							</value>
+						</entry>
+						<entry key="count">
+							<value>
+								<![CDATA[
+									select count(ttable.*) n from (#QUERY#) ttable					
+								]]>
+							</value>
+						</entry>
+					</map>
+				</constructor-arg>
+			</bean>
+		</property>
+		<constructor-arg>
+			<bean class="java.util.HashMap">
+				<constructor-arg>
+					<map>
+						<entry key="auditlog">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xal.*, xael.iexeai_id from xeai_audit_log xal 
+												left join  (select distinct xeai_id as iexeai_id from xeai_audit_error_log) xael 
+												on xal.xeai_id = xael.iexeai_id
+											where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xal.xeai_id; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.correlation_id;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.event_name;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.audit_type;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.audit_time;>= to_timestamp(?,'dd-mm-yyyy hh24:mi');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.audit_time;<= to_timestamp(?,'dd-mm-yyyy hh24:mi');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.endpoint;like ?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xal.payload;like ?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;;and xal.correlation_id is not null;]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xal.xeai_id desc, xal.audit_time desc" />
+								<property name="offset" value="0" />
+								<property name="limit" value="100" />
+							</bean>
+						</entry>
+
+						<entry key="auditerrorlog">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xael.* from xeai_audit_error_log xael 
+											where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xael.xeai_error_id; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.xeai_id; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.event_name;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.audit_time;>= to_timestamp(?,'dd-mm-yyyy hh24:mi');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.audit_time;<= to_timestamp(?,'dd-mm-yyyy hh24:mi');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.endpoint;like ?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xael.cause;like ?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xael.xeai_id desc, xael.audit_time desc" />
+								<property name="offset" value="0" />
+								<property name="limit" value="100" />
+							</bean>
+						</entry>
+						<entry key="event">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xe.*,
+											1 as is_existing 
+											from xeai_event xe
+											where 1 = 1 
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xe.event_name; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xe.event_base; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xe.event_owner;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xe.event_group;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xe.system_source;like ?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xe.system_target;like ?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xe.event_base, xe.event_name" />
+
+							</bean>
+						</entry>
+						<entry key="lookuparchcomp">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select  xla.* from xeai_lookup_archcomp xla where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xla.name; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xla.key;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xla.name, xla.key" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="lookuparchcomp-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select  
+												ROW_NUMBER() OVER (ORDER BY xla.name, xla.key ) AS NO , 
+												xla.* ,
+												1 as is_existing
+											from xeai_lookup_archcomp xla 
+											where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xla.name);  like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xla.keyupper(; like upper(?) ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<entry key="lookupdata">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select  xld.* from xeai_lookup_data xld where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xld.name; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xld.key;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xld.name, xld.key" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+
+						<entry key="lookupdata-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select  
+												ROW_NUMBER() OVER (ORDER BY xld.name, xld.key ) AS NO , 
+												xld.*  ,
+												1 as is_existing												
+											from xeai_lookup_data xld 
+											where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xld.name); like upper(?);is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xld.key); like upper(?);is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xld.value); like upper(?);is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipher">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xc.* from xeai_cipher xc where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xc.xeai_cipher_key;like '%?%';is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xc.xeai_cipher_type;like '%?%';is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xc.xeai_cipher_key, xc.xeai_cipher_type" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+
+						<entry key="cipher-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select 
+													ROW_NUMBER() OVER (ORDER BY xc.xeai_cipher_key, xc.xeai_cipher_type ) AS NO , 
+													xc.* , xc.xeai_cipher_key tkey, xc.xeai_cipher_type tvalue,
+													1 as is_existing
+											from xeai_cipher xc 
+											where 1 = 1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xc.xeai_cipher_key);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xc.xeai_cipher_type);like upper(?) ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+						<entry key="cipherrule">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xcr.* from xeai_cipher_rule xcr where 1 = 1											
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher_key; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher;like ? ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher_group; =?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xcr.xeai_cipher_key, xcr.xeai_cipher,  xcr.xeai_cipher_group, xcr.xeai_cipher_parameters" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="cipherrule-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select 
+												ROW_NUMBER() OVER (ORDER BY xcr.xeai_cipher_key, xcr.xeai_cipher,  xcr.xeai_cipher_group, xcr.xeai_cipher_parameters ) AS NO , 
+												xcr.* , xcr.xeai_cipher tkey, xcr.xeai_cipher_parameters tvalue,
+												1 AS is_existing
+											from xeai_cipher_rule xcr 
+											where 1 = 1											
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher_key; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher_group;in (select unnest(string_to_array(?, ',')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xcr.xeai_cipher_group; =?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xcr.xeai_cipher_key, xcr.xeai_cipher,  xcr.xeai_cipher_group, xcr.xeai_cipher_parameters" />
+							</bean>
+						</entry>
+						<entry key="context">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xc.* from xeai_context xc where 1=1									
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xc.context_site; =?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xc.context_alias;like '%?%';is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xc.context_site, context_alias" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="context-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select 
+												ROW_NUMBER() OVER (ORDER BY xc.context_site, context_alias ) AS NO , 
+												xc.* ,
+												1 as is_existing
+											from xeai_context xc 
+											where 1=1									
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xc.context_site);like upper(?);is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xc.context_alias);like upper(?);is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<entry key="flcontainer">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xf.*, xb.xeai_bus_group, xb.xeai_bus_name, xb.xeai_bus_cipher 
+											from xeai_flcontainer xf 
+												join xeai_bus xb on xb.xeai_bus_code = xf.container_bus
+											where 1=1								
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xf.container_owner;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xf.container_flgroup;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xf.container_bus;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xf.container_owner, xf.container_flgroup, xf.container_flsequence" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="flcontainer-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xf.*, xb.xeai_bus_group, xb.xeai_bus_name, xb.xeai_bus_cipher 
+											from xeai_flcontainer xf 
+												join xeai_bus xb on xb.xeai_bus_code = xf.container_bus
+											where 1=1								
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xf.container_owner;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xf.container_flgroup;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xf.container_bus;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xf.container_owner, xf.container_flgroup, xf.container_flsequence" />
+							</bean>
+						</entry>
+						<entry key="buscontext">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xb.xeai_bus_code,
+											   xc.context_site,
+											   xc.context_alias,
+											   xc.context_alias identifier,
+											   xbc.context_level,
+											   xbc.context_level referral,
+											   xbc.context_state,
+											   xbc.context_sequence,
+											   xbc.context_code,
+											   xf.container_flname,
+											   xbc.xeai_bus_code_binder  
+											from
+											   xeai_context xc 
+											join
+											   xeai_buscontext xbc   
+											      on xc.context_code = xbc.context_code  
+											join
+											   xeai_bus xb 
+											      on xbc.xeai_bus_code = xb.xeai_bus_code   
+											join
+											   xeai_flcontainer xf 
+											      on xb.xeai_bus_code = xf.container_bus    
+											where
+											   1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xb.xeai_bus_code;in (select unnest(string_to_array(?, '&')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_level;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xf.container_owner, xf.container_flsequence, xbc.context_level, xbc.context_sequence" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="buscontext-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xb.xeai_bus_code,
+											   xc.context_site,
+											   xc.context_alias,
+											   xbc.context_level,
+											   xbc.context_state,
+											   xbc.context_sequence,
+											   xbc.context_code,
+											   xf.container_flname,
+											   xbc.xeai_bus_code_binder  
+											from
+											   xeai_context xc 
+											join
+											   xeai_buscontext xbc   
+											      on xc.context_code = xbc.context_code  
+											join
+											   xeai_bus xb 
+											      on xbc.xeai_bus_code = xb.xeai_bus_code   
+											join
+											   xeai_flcontainer xf 
+											      on xb.xeai_bus_code = xf.container_bus    
+											where
+											   1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xb.xeai_bus_code;in (select unnest(string_to_array(?, '&')));is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_level;=?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xf.container_owner, xf.container_flsequence, xbc.context_level, xbc.context_sequence" />
+							</bean>
+						</entry>
+						<entry key="owner">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select xo.* from xeai_owner xo where 1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xo.name;like ? ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xo.name" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="owner-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+												ROW_NUMBER() OVER (ORDER BY xo.name ) AS NO , 
+												xo.*  ,
+												1 as is_existing												
+											from xeai_owner xo 
+											where 1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xo.name);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xo.alias);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xo.baseuri);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xo.domain);like upper(?) ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xo.name" />
+							</bean>
+						</entry>
+						<entry key="flowlogics">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xf.container_owner,
+											   string_agg(xb.xeai_bus_group||'/'||xf.container_flname, ', ' ORDER BY xf.container_flsequence) agg_busgroup,
+											   string_agg(xf.container_bus, '&' ORDER BY xf.container_flsequence) agg_containerbus,
+											   xf.container_flgroup 
+											from
+											   xeai_flcontainer xf   
+											join
+											   xeai_bus xb 
+											      on xb.xeai_bus_code = xf.container_bus
+											where 1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xo.name;like '%?%';is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="groupBy"
+									value="xf.container_owner, xf.container_flgroup" />
+								<property name="orderBy" value="xf.container_owner" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="buses">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xb.xeai_bus_name,
+											   xb.xeai_bus_name identifier,
+											   xb.xeai_bus_code,
+											   xb.xeai_bus_group,
+											   xbc.context_level referral,
+											   xb.xeai_bus_cipher,
+											   xc.xeai_cipher_type             
+											from
+											   xeai_bus xb              
+											join
+											   xeai_buscontext xbc                                
+											      on xbc.xeai_bus_code = xb.xeai_bus_code                   
+											join
+											   xeai_cipher xc 
+											      on xb.xeai_bus_cipher = xc.xeai_cipher_key            
+											where
+											   xb.xeai_bus_group NOT IN (select group_key from xeai_group where group_identifier ='CONTAINER-TYPE') 
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xbc.context_level;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_code;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_code;in (select context_code from xeai_buscontext where context_level = 'BASE' and xeai_bus_code = ?);is null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xb.xeai_bus_group, xb.xeai_bus_name" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="buses-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xb.xeai_bus_name,
+											   xb.xeai_bus_name identifier,
+											   xb.xeai_bus_code,
+											   xb.xeai_bus_group,
+											   xbc.context_level referral,
+											   xb.xeai_bus_cipher,
+											   xc.xeai_cipher_type             
+											from
+											   xeai_bus xb              
+											join
+											   xeai_buscontext xbc                                
+											      on xbc.xeai_bus_code = xb.xeai_bus_code                   
+											join
+											   xeai_cipher xc 
+											      on xb.xeai_bus_cipher = xc.xeai_cipher_key            
+											where
+											   xb.xeai_bus_group NOT IN (select group_key from xeai_group where group_identifier ='CONTAINER-TYPE') 
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xbc.context_level;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_code;=?;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_code;in (select context_code from xeai_buscontext where context_level = 'BASE' and xeai_bus_code = ?);is null]]>
+										</value>
+										<value><![CDATA[:nvna;and xbc.context_code;<>?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xb.xeai_bus_group, xb.xeai_bus_name" />
+							</bean>
+						</entry>
+						<entry key="buses-olayer">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xb.*, xb.xeai_bus_name identifier, 'LAYER' referral
+											from
+											   xeai_bus xb 
+											where
+												1=0
+											   or xb.xeai_bus_code in (
+											      select
+											         container_bus 
+											      from
+											         xeai_flcontainer 
+											      where
+											         container_owner = ?
+											   ) 
+											   or xb.xeai_bus_code in (
+											      select
+											         xeai_bus_code 
+											      from
+											         xeai_busowner 
+											      where
+											         xeai_owner = ?
+											   )
+										]]>
+									</value>
+								</constructor-arg>
+								<property name="orderBy" value="xb.xeai_bus_group, xb.xeai_bus_name" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+						<entry key="transform">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xt.*
+											from
+											   xeai_transform xt 
+											where 1=1	
+											and xt.transform_id <> 212							
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and xt.transform_id;= to_number(?,'99999');is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and xt.transform_type;like ?;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+								<property name="orderBy" value="xt.transform_id asc" />
+								<property name="offset" value="?" />
+								<property name="limit" value="?" />
+							</bean>
+						</entry>
+
+						<entry key="transform-rule">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+											   xtr.*, 1 is_exist
+											from
+											   xeai_transform_rule xtr 
+											where 1=1	
+											and xtr.transform_id = to_number(?,'99999')										
+										]]>
+									</value>
+								</constructor-arg>
+								<property name="orderBy"
+									value="xtr.transform_id , xtr.transform_rule_id asc" />
+							</bean>
+						</entry>
+						<entry key="group-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select 
+												ROW_NUMBER() OVER (ORDER BY xg.group_key, xg.group_identifier ) AS NO , 
+												xg.*, xg.group_key tkey, xg.group_key tvalue ,
+												1 as is_existing
+											from xeai_group xg 
+											where 1=1									
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(xg.group_key); like upper(?);is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(xg.group_identifier);like upper(?);is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+						<entry key="message-versioning-nonl">
+							<bean class="com.xybase.ax.eai.waconsole.appliance.qmap.QMap">
+								<constructor-arg>
+									<value>
+										<![CDATA[
+											select
+												ROW_NUMBER() OVER (ORDER BY mv.message_name ) AS NO , 
+												mv.*  ,
+												1 as is_existing												
+											from xeai_message_versioning mv 
+											where 1=1
+										]]>
+									</value>
+								</constructor-arg>
+								<constructor-arg>
+									<list>
+										<value><![CDATA[:nvna;and upper(mv.message_name);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(mv.message_group);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(mv.message_type);like upper(?) ;is not null]]>
+										</value>
+										<value><![CDATA[:nvna;and upper(mv.description);like upper(?) ;is not null]]>
+										</value>
+									</list>
+								</constructor-arg>
+							</bean>
+						</entry>
+
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+
+	</bean>
+
+</beans>

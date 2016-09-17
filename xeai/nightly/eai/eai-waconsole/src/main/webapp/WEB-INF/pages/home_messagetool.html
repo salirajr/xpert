@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>airportxpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+<link href="../../ui/css/msgtools_style.css"
+	th:href="@{/ui/css/msgtools_style.css}" rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">MESSAGING KITS</span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default btn-outline"
+			title="Refresh" id="btn-refresh">
+			<i class="fa fa-refresh"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel-body ">
+			<div class="panel-group" id="messageingContext">
+				<div class="panel">
+					<div class="panel-heading">
+						<h5 class="panel-title">
+							<a data-toggle="collapse" data-parent="#messageingContext"
+								href="#context">Context Definition</a>
+						</h5>
+					</div>
+					<div id="context" class="panel-collapse collapse in">
+						<div class="panel-body white-bg ">
+							<div class="row">
+								<div class="col-lg-3 scrollable">
+									<div class="input-group m-b">
+										<span class="input-group-addon">Integration-Type </span> <select
+											class="form-control m-b" id="integration-type">
+											<option value="SYNCHRONOUS">SYNC</option>
+											<option value="ASYNCHRONOUS">ASYNC</option>
+										</select>
+									</div>
+									<div class="input-group m-b">
+										<span class="input-group-addon">Context </span> <select
+											class="form-control m-b" id="context-source">
+										</select>
+									</div>
+									<div class="alert alert-info alert-dismissable">
+										<button aria-hidden="true" data-dismiss="alert" class="close"
+											type="button">×</button>
+										<span id="context-desription"></span>
+									</div>
+								</div>
+								<div class="col-lg-9 b-l">
+									<div class="hr-line-dashed"></div>
+									<pre id="context-editor"></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-group" id="messagingContent">
+				<div class="panel">
+					<div class="panel-heading">
+						<h5 class="panel-title">
+							<a data-toggle="collapse" data-parent="#messagingContent"
+								href="#content">Messages Constructor</a>
+						</h5>
+					</div>
+					<div id="content" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<div class="row">
+								<div class="col-lg-6">
+									<div class="input-group m-b">
+										<span class="input-group-addon ">Request-Out </span> <select
+											class="form-control m-b" id="rqo-payload">
+											<option value="default">Default</option>
+											<option value="custom">Custom</option>
+										</select> <span class="input-group-addon">Type</span> <select
+											class="form-control m-b" id="rqo-payload-type">
+											<option value="text">TEXT</option>
+											<option value="xml">XML</option>
+											<option value="json">JSON</option>
+										</select><span class="input-group-btn">
+											<button type="button" id="mock-send" class="btn btn-primary">SEND</button>
+										</span>
+
+									</div>
+									<div class="hr-line-dashed"></div>
+									<pre id="rqo-editor"></pre>
+								</div>
+								<div class="col-lg-6">
+									<div class="input-group m-b">
+										<span class="input-group-addon">Response-In </span> <select
+											class="form-control m-b rtls" id="rpi-content">
+											<option value="payload">Payloads</option>
+											<option value="headers">Headers</option>
+										</select> <span class="input-group-addon">Type</span> <select
+											class="form-control m-b" id="rpi-type">
+											<option value="text">TEXT</option>
+											<option value="xml">XML</option>
+											<option value="json">JSON</option>
+										</select>
+									</div>
+									<div class="hr-line-dashed"></div>
+									<pre id="rpi-editor"></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+					<input type="text" id="rpi-result-payload" class="hidden-tiny" /> <input
+						type="text" id="rpi-result-headers" class="hidden-tiny" />
+				</div>
+			</div>
+		</div>
+		<form id="ifmock-form" class="invisible"
+			th:action="@{/appliance/mockup.do}" method="post">
+			<input type="text" id="ifcontext-file" name="fileContext"></input> <input
+				type="text" id="ifcontext-config" name="configContext"></input> <input
+				type="text" id="ifcontext-editor" name="context"></input> <input
+				type="text" id="ifrqo-editor" name="requestOut"></input> <input
+				type="text" id="ifrpi-editor" name="responseIn"></input>
+		</form>
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<script src="../../ui/ace-editor/src/ace.js"
+			th:src="@{/ui/ace-editor/src/ace.js}"></script>
+		<script src="../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/references_script.js"
+			th:src="@{/ui/js/msgtools_script.js}"></script>
+	</div>
+</body>
+
+</html>

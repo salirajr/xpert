@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd ">
+
+	<bean id="wireService-sdop" class="com.ptxti.concept.ruleengine.wire.AxreWireService">
+		<property name="factsMapper" ref="factsMapper-sdop" />
+		<property name="knowledgeSession" ref="sdopSession" />
+		<property name="operationName" value="stand-operation" />
+	</bean>
+
+	<bean id="factsMapper-sdop" class="com.ptxti.concept.ruleengine.mapper.DomFactsMapper">
+		<property name="facts" ref="resultMap-extraction-sdop" />
+		<property name="resultMap" ref="resultMap-injection-sdop" />
+		<property name="template"
+			value="ns1:executeStandOpRuleResponse xmlns:ns1='urn:EIservices' xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' soapenv:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'" />
+	</bean>
+
+	<bean id="resultMap-extraction-sdop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="in0" value="/ns1:executeStandOpRule/in0" />
+				<entry key="in1" value="/ns1:executeStandOpRule/in1" />
+				<entry key="in2" value="/ns1:executeStandOpRule/in2" />
+				<entry key="in3" value="/ns1:executeStandOpRule/in3" />
+				<entry key="in4" value="/ns1:executeStandOpRule/in4" />
+				<entry key="in5" value="/ns1:executeStandOpRule/in5" />
+				<entry key="in6" value="/ns1:executeStandOpRule/in6" />
+				<entry key="in7" value="/ns1:executeStandOpRule/in7" />
+				<entry key="in8" value="/ns1:executeStandOpRule/in8" />
+				<entry key="in9" value="/ns1:executeStandOpRule/in9" />
+				<entry key="in10" value="/ns1:executeStandOpRule/in10" />
+				<entry key="in11" value="/ns1:executeStandOpRule/in11" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="resultMap-injection-sdop" class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="return"
+					value="/ns1:executeStandOpRuleResponse/executeStandOpRuleReturn" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+</beans>

@@ -1,0 +1,95 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.sdop
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.DateUtil
+
+function EphemeralMantle initiation(EphemeralMantle em){
+	em.facts.put("timeBuffer", 1);
+	return em;
+}
+
+rule "initiation-calibration:initiated-phase"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "0000000", 
+        		round == 0
+    			)
+    then
+    	$em = initiation($em);
+    	$em.setPhase("initiation-calibration:input-validity-check");
+    	$em.logs("initiated");
+    	update( $em );
+end
+
+/* Note from AION,
+ * B: Move button / drag and drop / tow flight 
+ * E: Update flight during AODBAFSUPDATE from FMM 
+ * C: Solve,
+ * D: New stand
+ */
+rule "calibration:prime-logs"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "calibration:prime-logs", 
+    			round == 1
+    			)
+    then
+    	$em.facts.remap("in0","_standCode");
+    	String eta = DateUtil.toString(
+    		StringUtil.toTimestamp($em.facts.get("in1"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss");
+    	$em.facts.put("in1", eta);
+    	$em.facts.remap("in1","_eta");
+    	String etd = DateUtil.toString(
+    		StringUtil.toTimestamp($em.facts.get("in2"), 
+    			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), "yyyy-MM-dd HH:mm:ss");
+    	$em.facts.put("in2", etd);
+    	$em.facts.remap("in2","_etd");
+    	$em.facts.remap("in3","_serviceType");
+    	$em.facts.remap("in4","_aircraftType");
+    	$em.facts.remap("in5","_spSeq");
+    	$em.facts.remap("in6","_visitSeq");
+    	$em.facts.remap("in7","_type");
+    	$em.facts.remap("in8","_terminalCode");
+    	$em.facts.remap("in9","_gateCode");
+    	$em.facts.remap("in10","_categoryCode");
+    	$em.facts.remap("in11","_airlineCode");
+    	
+    	$em.setPhase("initiation-calibration:itself");
+    	update( $em );
+    	
+end
+
+
+rule "allocation:determination"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "calibration:prime-logs", 
+        		facts.get("_type") not in ("B","E"),
+    				round == 2
+    			)
+    then
+    	$em.logs("initiation-calibration:update-self-pair done!");
+    	$em.setPhase("alocation-validity");
+    	
+    	$em.facts.put("return","NoResourceAvailable");
+    	update( $em );
+end
+
+rule "adhoc:allocation-determination"
+    when
+        $em: EphemeralMantle(operationName == "stand-operation",
+        	phase == "calibration:prime-logs", 
+        		facts.get("_type") in ("B","E"),
+    				round == 2
+    			)
+    then
+    	$em.facts.put("return","NoConflict");
+    	$em.logs("initiation-calibration:update-self-pair done!, adhoc:allocation:determination begin!!");
+    	$em.setPhase("adhoc:alocation-validity");
+    	update( $em );
+end
+

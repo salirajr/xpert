@@ -1,0 +1,233 @@
+//created on: Feb 11, 2015
+package assets.axre.rule.apii.cupl
+
+import java.util.Map
+
+//list any import classes here.
+import com.concept.ruleengine.model.EphemeralMantle
+
+import com.concept.ruleengine.common.util.StringUtil
+import com.concept.ruleengine.common.util.AirportMath
+import com.concept.ruleengine.common.util.DateUtil
+import com.concept.ruleengine.common.util.CustomUtil
+import com.concept.ruleengine.reference.dao.ReferenceDAO
+import com.concept.ruleengine.reference.mapper.QueryMapper
+import com.concept.ruleengine.dt.model.DecisionTable
+
+import java.sql.Timestamp
+
+//declare any global variables here
+global com.concept.ruleengine.reference.dao.ReferenceDAO reference
+global com.concept.ruleengine.reference.mapper.QueryMapper mapper
+global com.concept.ruleengine.dt.model.DecisionTable decisionTable
+
+
+function EphemeralMantle initAllocationValidation(EphemeralMantle em,
+		QueryMapper mapper, ReferenceDAO reference, 
+			DecisionTable decisionTable){
+			
+	mapper.relace("_sqlmap_cupl","retrieve_counterclosetime");
+	em.facts.put("counterclosetime", reference.getInt(mapper.getQuery()));
+	
+	
+	mapper.relace("_sqlmap_cupl","retrieve_counteropentime");
+	em.facts.put("counteropentime", reference.getInt(mapper.getQuery()));
+	
+	mapper.relace("_sqlmap_cupl","retrieve_rmsplanning");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey") );
+	Map map = reference.getMap(mapper.getQuery());
+	
+	em.facts.put("_airlineCode", map.get("airline_code"));
+	em.facts.put("_categoryCode", map.get("category_code"));
+	em.facts.put("_etd", map.get("etad"));
+	em.facts.put("_terminalCode", map.get("terminal_code"));
+	
+	decisionTable.relace("_xdt_cuop_flightcounter");
+	decisionTable.set("AIRLINECODE", em.facts.get("_airlineCode"));
+	decisionTable.set("FILGHTCATEGORY", em.facts.get("_categoryCode"));
+	decisionTable.laced();
+	
+	em.facts.put("counter:i", 0);
+	em.facts.put("counter", decisionTable.get("COUNTERSTART"));
+	
+	if(em.facts.get("counter") == null)
+		em.facts.put("counter", decisionTable.getNVL("COUNTERSTART"));
+		
+	/* Assigned the initial start counter */ 
+	em.facts.put("counter:start", em.facts.get("counter"));
+		
+	em.facts.put("counter:n",decisionTable.get("N"));
+	if(em.facts.get("counter:n") == null)
+		em.facts.put("counter:n",decisionTable.getNVL("N"));
+		
+	return em;
+}
+
+function EphemeralMantle initiationAvailability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	em.logs("alocation-validity:processing for availability!");	
+	mapper.relace("_sqlmap_cupl","retrieve_operationconflict");
+	mapper.parameterized("RMSKEY", em.facts.get("_rmsKey") );
+	mapper.parameterized("COUNTER_CODE", em.facts.get("counter") );
+	
+	Timestamp etd = StringUtil.toTimestamp(em.facts.get("_etd"), "yyyy-MM-dd HH:mm:ss");
+	
+	em.facts.put("checkincounteropentime", 
+		DateUtil.toString(
+				AirportMath.leapTimestamp(etd, em.facts.getInt("counteropentime"), -1), 
+					"yyyy-MM-dd HH:mm:ss"));
+	
+	mapper.parameterized(
+		"CHECK_IN_COUNTER_OPEN_TIME", 
+			em.facts.get("checkincounteropentime"));
+			
+	em.facts.put("checkincounterclosetime", 
+		DateUtil.toString(
+			AirportMath.leapTimestamp(etd, em.facts.getInt("counterclosetime"), -1), 
+				"yyyy-MM-dd HH:mm:ss"));
+					
+	mapper.parameterized(
+		"CHECK_IN_COUNTER_CLOSE_TIME", 
+			em.facts.get("checkincounterclosetime"));
+			
+	em.facts.put("operationconflict", reference.getNumeric(mapper.getQuery()));
+	
+	return em;	
+}
+
+
+function String nextCounter(Object counter, int next){
+	String nextString = "";
+	if(StringUtil.isNumeric(counter.toString())){
+		next += StringUtil.toInt(counter.toString());
+		nextString += next;
+	}else{
+		next += StringUtil.toInt(counter.toString().substring(1));
+		nextString += counter.toString().substring(0, 1)+next;
+	}
+	return nextString;
+}
+
+function void reassignOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_cupl","delete_rms_flight_counter_pl");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	reference.modify(mapper.getQuery());
+	
+	mapper.relace("_sqlmap_cupl","insert_rms_flight_counter_pl");
+	mapper.parameterized("RMSKEY",  em.facts.get("_rmsKey"));
+	mapper.parameterized("COUNTER_CODE",  em.facts.get("counter"));
+	mapper.parameterized("CHECK_IN_COUNTER_OPEN_TIME",  em.facts.get("checkincounteropentime"));
+	mapper.parameterized("CHECK_IN_COUNTER_CLOSE_TIME",  em.facts.get("checkincounterclosetime"));
+	reference.modify(mapper.getQuery());
+	
+	em.facts.put("return","ResourceAllocated");
+	
+}
+
+function void reaccomodatesOperability(EphemeralMantle em,
+	QueryMapper mapper, ReferenceDAO reference){
+	
+	mapper.relace("_sqlmap_cupl","update_status_rmsplanning");
+	mapper.parameterized("RMSKEY",em.facts.get("_rmsKey") );
+	reference.modify(mapper.getQuery());
+	
+}
+
+rule "single-allocation:initiation"
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase =="single-allocation", 
+        		round == 0
+    			)
+    then
+    	$em = initAllocationValidation($em, mapper, reference, decisionTable);
+		$em.logs("single-allocation initiation!!");
+		$em.setPhase("single-allocation:initiation");
+		$em.logs($em.facts);
+		update( $em );
+end
+
+rule "single-allocation:increments" 
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:increments", 
+        		round == 0
+    		)
+    then
+    	$em.setPhase("single-allocation:initiation");
+    	$em.facts.put("counter:i", $em.facts.getInt("counter:i") + 1);
+    	update( $em );
+end
+
+rule "single-allocation:ends"
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:initiation", 
+        		facts.getNumeric("counter:n") <= facts.getInt("counter:i"),
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:ends with no allocation!!");
+    	$em.setPhase("single-allocation:ends");
+end
+
+rule "single-allocation:availability-counter" 
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:initiation", 
+        		facts.getNumeric("counter:n") > facts.getInt("counter:i"),
+        			round == 0
+    			)
+    then
+    	$em.facts.put("counter", nextCounter($em.facts.get("counter:start"), $em.facts.getInt("counter:i")));
+    	$em.logs("Counter allocation check at " + $em.facts.get("counter"));
+    	
+    	$em = initiationAvailability($em, mapper, reference);
+    	$em.setPhase("single-allocation:availability-counter");
+    	update( $em );
+end
+
+
+rule "single-allocation:inavailable" 
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:availability-counter", 
+        		facts.getNumeric("operationconflict") > 0,
+        			round == 0
+    			)
+    then
+    	$em.logs("single-allocation:inavailable!!, reconciliated with next possibility!"); 
+		$em.setPhase("single-allocation:increments");
+		update( $em );
+end
+
+rule "single-allocation:reassign-available" 
+	salience 100
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:availability-counter", 
+        		facts.getNumeric("operationconflict") == 0,
+        			round == 0
+    			)
+    then
+    	$em.setPhase("single-allocation-operable:non-adhoc");
+    	reassignOperability($em, mapper, reference);
+end
+
+rule "single-allocation:reaccomodates-available"
+	salience 90
+    when
+        $em: EphemeralMantle(operationName == "counter-planning",
+        	phase == "single-allocation:availability-counter", 
+        		facts.getNumeric("operationconflict") == 0,
+        			round == 0,
+        				facts.getBoolean("onfitnessAssignation")
+    			)
+    then
+    	reaccomodatesOperability($em, mapper, reference);
+end
+

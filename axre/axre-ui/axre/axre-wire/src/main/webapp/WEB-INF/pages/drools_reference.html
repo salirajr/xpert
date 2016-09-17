@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/decorator">
+<head layout:fragment="def-head">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>Airport | Xpert</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/css/rms_calibration"
+	th:href="@{/ui/css/rms_calibration}" rel="stylesheet"></link>
+
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="ibox float-e-margins">
+					<div class="ibox-content">
+						<strong>Drools</strong> implements and extends the Rete
+						algorithm; Leaps used to be provided but was retired as it became
+						unmaintained. The Drools Rete implementation is called ReteOO,
+						signifying that Drools has an enhanced and optimized
+						implementation of the Rete algorithm for object oriented systems.
+						Other Rete based engines also have marketing terms for their
+						proprietary enhancements to Rete, like RetePlus and Rete III. The
+						most common enhancements are covered in "Production Matching for
+						Large Learning Systems (Rete/UL)" (1995) by Robert B. Doorenbos.
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-8">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Administered Drools File on CONTEXT-INF</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<table id="drools"
+							class="table table-striped table-bordered table-hover dataTables-example">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Location</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+
+							</tbody>
+						</table>
+
+						<form id="aflinkage" class="invisible"
+							th:action="@{/assetfabrics.htm}" action="../../assetfabrics.htm"
+							method="post">
+							<input type="text" id="base" name="base"></input> <input
+								type="text" id="file" name="file"></input><input type="text"
+								id="source" name="source" value="drool-references"></input>
+						</form>
+
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="add-js">
+
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+
+		<script src="../../ui/js/drools_calibration.js"
+			th:src="@{/ui/js/drools_calibration.js}"></script>
+	</div>
+</body>
+
+</html>

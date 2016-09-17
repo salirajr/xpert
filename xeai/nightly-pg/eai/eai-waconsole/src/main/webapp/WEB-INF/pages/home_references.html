@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="decorator/base">
+<head layout:fragment="head-definition">
+<meta charset="utf-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+<title>References</title>
+
+<link href="../../ui/ui-bootstrap/css/bootstrap.min.css"
+	th:href="@{/ui/ui-bootstrap/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/font-awesome/css/font-awesome.css"
+	th:href="@{/ui/ui-bootstrap/font-awesome/css/font-awesome.css}"
+	rel="stylesheet"></link>
+
+<!-- Data Tables -->
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.bootstrap.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.responsive.css}"
+	rel="stylesheet"></link>
+<link
+	href="../../ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/dataTables/dataTables.tableTools.min.css}"
+	rel="stylesheet"></link>
+
+<link href="../../ui/ui-bootstrap/css/animate.css"
+	th:href="@{/ui/ui-bootstrap/css/animate.css}" rel="stylesheet"></link>
+<link href="../../ui/ui-bootstrap/css/style.css"
+	th:href="@{/ui/ui-bootstrap/css/style.css}" rel="stylesheet"></link>
+
+<!-- Additional Style -->
+<link href="../../ui/css/style.css" th:href="@{/ui/css/style.css}"
+	rel="stylesheet"></link>
+	
+<link href="../../ui/ui-bootstrap/css/plugins/chosen/chosen.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/chosen/chosen.css}"
+	rel="stylesheet"></link>
+<!-- 	Jtree		 -->
+<link href="../../../ui/ui-bootstrap/css/plugins/jsTree/style.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/jsTree/style.min.css}"
+	rel="stylesheet"></link>
+<!-- Toastr style -->
+<link href="../../../ui/ui-bootstrap/css/plugins/toastr/toastr.min.css"
+	th:href="@{/ui/ui-bootstrap/css/plugins/toastr/toastr.min.css}"
+	rel="stylesheet"></link>
+</head>
+<body>
+	<span layout:fragment="page-title">REFERENCE<span
+		id="lbl-reference-header"></span></span>
+	<div layout:fragment="page-control">
+		<button type="button" class="btn btn-default  btn-outline" title="Add"
+			id="addNew" >
+			<i id="id-fa-plus" class="fa fa-plus"></i>
+		</button>
+		<button type="button" class="btn btn-default btn-outline"
+			title="SearchQuery" id="search-dialog">
+			<i class="fa fa-search"></i>
+		</button>
+		<button type="button" class="btn btn-default  btn-outline" title="Refresh" id="clear-all">
+			<i id="id-fa-plus" class="fa fa-refresh"></i>
+		</button>
+	</div>
+	<div layout:fragment="main-content">
+		<div class="panel panel-default imx-screen-adjustment">
+			<div class="panel-body">
+				<div class="row">
+					<div class="panel">
+						<div class="panel-heading">
+							<div class="panel-options">
+								<ul id="tab-reference" class="nav nav-tabs nav-justified norm">
+									<li><a data-toggle="tab" href="#tab-1">LOOKUP ARCHCOMP</a></li>
+									<li><a data-toggle="tab" href="#tab-2">LOOKUP DATA</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-3">CIPHER</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-4">CONTEXT</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-6"> GROUP</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-7">MESSAGE VERSION</a></li>
+									<li class=""><a data-toggle="tab" href="#tab-8">OWNER</a></li>
+								</ul>
+							</div>
+						</div>
+						<div class="panel-body">
+							<div class="tab-content">
+								<div id="tab-1" class="tab-pane">
+									<div class="col-sm-12 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-lookup-archcomp" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>ARCHCOMP NAME</th>
+														<th>ARCHCOMP KEY</th>
+														<th>ARCHCOMP VALUE</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+
+
+								</div>
+								<div id="tab-2" class="tab-pane">
+									<div class="col-sm-12 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-lookup-data" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>DATA NAME</th>
+														<th>DATA KEY</th>
+														<th>DATA VALUE</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div id="tab-3" class="tab-pane">
+									<div class="col-sm-7 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-cipher" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>KEY</th>
+														<th>TYPE</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div class="col-sm-5 b-r scrollable">
+										<div class="row">
+											<div class="input-group">
+												<input type="text" class="form-control"
+													readonly="true" id="cipher-key" ></input><span class="input-group-addon "><a
+													id="addCipherRule"><i class="fa fa-plus fa-md"></i></a></span>
+											</div>
+											<input type="hidden" id="cipherKey" value="" />
+											<table id="tbl-cipher-rule" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>RULE</th>
+														<th>PARAMETERS</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div id="tab-4" class="tab-pane">
+									<div class="col-sm-9 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-context" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>CONTEXT SITE</th>
+														<th>ALIAS</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div class="col-sm-3">
+										<div class="row">
+											<div class="input-group">
+												<input id="if-buscontext" type="text" class="form-control"
+													value="INV/DOMAIN"></input><span class="input-group-addon "><a
+													id="ln-context-addcontext"><i class="fa fa-plus fa-md"></i></a></span>
+
+											</div>
+											<div class="scrollable">
+												<div id="jt-buscontext"></div>
+											</div>
+										</div>
+									</div>
+									
+								</div>
+								<div id="tab-6" class="tab-pane">
+									<div class="col-sm-12 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-group" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>KEY</th>
+														<th>IDENTIFIER</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div id="tab-7" class="tab-pane">
+									<div class="col-sm-12 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-message-versioning" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>MESSAGE NAME</th>
+														<th>MESSAGE GROUP</th>
+														<th>MESSAGE TYPE</th>
+														<th>MESSAGE TEMPLATE</th>
+														<th>MESSAGE SAMPLE</th>
+														<th>MESSAGE VERSION</th>
+														<th>MESSAGE DESCRIPTION</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div id="tab-8" class="tab-pane">
+									<div class="col-sm-12 b-r b-l scrollable">
+										<div class="row">
+											<table id="tbl-owner" class="table table-striped">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>NAME</th>
+														<th>ALIAS</th>
+														<th>BASE URI</th>
+														<th>DOAMAIN</th>
+													</tr>
+												</thead>
+												<tbody>
+
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+<!-- 		modal popup -->
+		<div class="modal inmodal" id="mdl-act-component" tabindex="-1"
+			role="dialog" aria-hidden="true">
+			<div id="cnt-dialogcomponent" class="modal-dialog modal-lg">
+				<div class="modal-content animated bounceInRight">
+
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+						<h4 class="modal-title"></h4>
+						<small class="font-bold"></small>
+					</div>
+
+					<div class="modal-body" id="cnt-context">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">CONTEXT SITE</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ctxSiteId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">ALIAS</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ctxAliasId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					
+					<div class="modal-body" id="cnt-lookup-archomp">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">ARCHCOMP NAME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="archompNameId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">ARCHCOMP KEY</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="archompKeyId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					
+					<div class="modal-body" id="cnt-lookup-data">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">DATA NAME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="dataNameId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">DATA KEY</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="dataKeyId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">DATA VALUE</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="dataValueId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-body" id="cnt-cipher">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">KEY</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="cipherKeyId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">TYPE</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="cipherTypeId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-body" id="cnt-group">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">KEY</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="groupKeyId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">IDENTIFIER</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="groupIdentifierId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-body" id="cnt-message-versioning">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">MESSAGE NAME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="messageNameId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">MESSAGE GROUP</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="messageGroupId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">MESSAGE TYPE</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="messageTypeId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">MESSAGE DESCRIPTION</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="messageDescriptionId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-body" id="cnt-owner">
+						<form >
+							<div class="row">
+								<span class="col-sm-3">OWNER NAME</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ownerNameId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">OWNER ALIAS</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ownerAliasId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">BASE URI</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ownewBaseUriId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<span class="col-sm-3">OWNER DOMAIN</span>
+								<div class="col-sm-9">
+									<div class="input-group m-b">
+										<span class="input-group-addon">like</span> <input type="text"
+											id="ownerDoamainId" placeholder=""
+											class="form-control"></input>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" id="btnSearchEvent">Search</button>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div layout:fragment="ext-script-definition">
+		<!-- Data Tables -->
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/jquery.dataTables.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.bootstrap.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.responsive.js}"></script>
+		<script
+			src="../../ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/dataTables/dataTables.tableTools.min.js}"></script>
+		<!-- Chosen -->
+		<script src="../../ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/chosen/chosen.jquery.js}"></script>\
+		<!-- JSTREE -->
+		<script src="../../../ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js"
+			th:src="@{/ui/ui-bootstrap/js/plugins/jsTree/jstree.min.js}"></script>
+		
+
+	</div>
+	<div layout:fragment="final-script-onstage">
+		<script src="../../ui/js/references_script.js"
+			th:src="@{/ui/js/references_script.js}"></script>
+		
+		<script src="../../ui/js/references/context_script.js"
+			th:src="@{/ui/js/references/context_script.js}"></script>
+			
+		<script src="../../ui/js/references/lookup_archomp_script.js"
+			th:src="@{/ui/js/references/lookup_archomp_script.js}"></script>
+			
+		<script src="../../ui/js/references/lookup_data_script.js"
+			th:src="@{/ui/js/references/lookup_data_script.js}"></script>
+			
+		<script src="../../ui/js/references/cipher_script.js"
+			th:src="@{/ui/js/references/cipher_script.js}"></script>
+			
+		<script src="../../ui/js/references/cipher_rule_script.js"
+			th:src="@{/ui/js/references/cipher_rule_script.js}"></script>
+			
+		<script src="../../ui/js/references/group_script.js"
+			th:src="@{/ui/js/references/group_script.js}"></script>
+			
+		<script src="../../ui/js/references/owner_script.js"
+			th:src="@{/ui/js/references/owner_script.js}"></script>
+			
+		<script src="../../ui/js/references/message_versioning_script.js"
+			th:src="@{/ui/js/references/message_versioning_script.js}"></script>
+			
+	</div>
+
+</body>
+
+</html>

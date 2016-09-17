@@ -1,0 +1,15 @@
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:urn="urn:EIservices">
+	<soapenv:Header />
+	<soapenv:Body>
+		<ns1:executeCarouselOpRule xmlns:ns1="urn:EIservices"
+			xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+			<in0>?</in0>
+			<in1>?</in1>
+			<in2>?</in2>
+			<in3>?</in3>
+		</ns1:executeCarouselOpRule>
+	</soapenv:Body>
+</soapenv:Envelope>

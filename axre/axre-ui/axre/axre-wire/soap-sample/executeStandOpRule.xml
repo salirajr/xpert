@@ -1,0 +1,23 @@
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:urn="urn:EIservices">
+	<soapenv:Header />
+	<soapenv:Body>
+		<ns1:executeStandOpRule xmlns:ns1="urn:EIservices"
+			xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+			<in0 >A22</in0>
+			<in1>2015-05-26T13:41:00.000Z</in1>
+			<in2>2015-05-26T14:41:00.000Z</in2>
+			<in3 >J</in3>
+			<in4 >733</in4>
+			<in5 href="#id0" >1</in5>
+			<in6 href="#id1" >34847</in6>
+			<in7 >B</in7>
+			<in8 >8</in8>
+			<in9 >A2</in9>
+			<in10 >D</in10>
+			<in11 >JT</in11>
+		</ns1:executeStandOpRule>
+	</soapenv:Body>
+</soapenv:Envelope>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd ">
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/datasource.xml" />
+
+	<import resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/dao.xml" />
+
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-archcomp/controlbus.xml" />
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xystubs/receivers/adapter-http.xml" />
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xystubs/receivers/gateway-http.xml" />
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xystubs/flows/asynchronous.xml" />
+	<import
+		resource="file:${xybase.ax.eai.domain.basepath}/INV-xystubs/flows/synchronous.xml" />
+
+</beans>
+
